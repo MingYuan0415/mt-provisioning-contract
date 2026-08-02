@@ -20,3 +20,16 @@ Authentication, AP-not-found, association-timeout, DHCP-timeout, link-lost,
 radio, storage, cancellation, and internal outcomes map to the corresponding
 `FailureReason`. Apps localize those values; devices do not send presentation
 text.
+
+For an `OK` response, the top-level failure is always `NONE`. A
+`RADIO_UNAVAILABLE` response also carries `RADIO_UNAVAILABLE`; every other
+admission error carries `NONE`. An asynchronous failure appears in the
+returned `OperationStatus`, not in a later response envelope.
+
+Request validation order is decrypt and parse, nonzero request ID, protocol
+major, recognized body, advertised capability, argument validation, and
+foreground admission. A frame that cannot be decrypted or parsed is rejected
+by the transport and may produce no `ProvisioningResponse`. Once a request ID
+is available, all application-level errors echo it and use no response body.
+
+See `operations.md` for the success body and admission rule of every request.

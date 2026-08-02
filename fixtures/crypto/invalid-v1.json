@@ -1,0 +1,8 @@
+[
+  {"id": "changed-nonce-prefix", "mutation": "nonce_prefix"},
+  {"id": "changed-sequence", "mutation": "sequence"},
+  {"id": "changed-subscription-id", "mutation": "subscription_id"},
+  {"id": "changed-service-uuid", "mutation": "service_uuid"},
+  {"id": "changed-ciphertext", "mutation": "ciphertext"},
+  {"id": "changed-tag", "mutation": "tag"}
+]

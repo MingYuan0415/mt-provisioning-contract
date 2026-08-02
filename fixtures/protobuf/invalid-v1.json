@@ -1,0 +1,17 @@
+[
+  {
+    "id": "truncated-fixed64",
+    "type": "microtech.provisioning.v1.ProvisioningRequest",
+    "hex": "0901"
+  },
+  {
+    "id": "truncated-submessage",
+    "type": "microtech.provisioning.v1.ProvisioningRequest",
+    "hex": "520200"
+  },
+  {
+    "id": "invalid-wire-type",
+    "type": "microtech.provisioning.v1.ProvisioningRequest",
+    "hex": "0f"
+  }
+]

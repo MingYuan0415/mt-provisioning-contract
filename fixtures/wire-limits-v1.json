@@ -1,0 +1,9 @@
+{
+  "maximum_event_frame_bytes": 160,
+  "maximum_encrypted_response_bytes": 500,
+  "security2_tag_bytes": 16,
+  "max_scan_records": 5,
+  "max_ssid_bytes": 32,
+  "max_password_bytes": 63,
+  "minimum_event_mtu": 185
+}

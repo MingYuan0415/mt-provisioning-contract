@@ -1,0 +1,51 @@
+{
+  "validation_order": [
+    "decrypt_and_parse",
+    "request_id",
+    "protocol_major",
+    "recognized_body",
+    "advertised_feature",
+    "arguments",
+    "foreground_admission"
+  ],
+  "requests": [
+    {"request": "get_capabilities", "success_body": "capabilities", "creates_operation": false, "required_feature": null},
+    {"request": "get_snapshot", "success_body": "snapshot", "creates_operation": false, "required_feature": null},
+    {"request": "get_operation", "success_body": "operation", "creates_operation": false, "required_feature": null},
+    {"request": "start_scan", "success_body": "operation_accepted", "creates_operation": true, "required_feature": "FEATURE_WIFI_SCAN"},
+    {"request": "get_scan_results", "success_body": "scan_results", "creates_operation": false, "required_feature": "FEATURE_WIFI_SCAN"},
+    {"request": "set_credentials", "success_body": "operation_accepted", "creates_operation": true, "required_feature": null},
+    {"request": "cancel_operation", "success_body": "operation", "creates_operation": false, "required_feature": null},
+    {"request": "disconnect", "success_body": "operation_accepted", "creates_operation": true, "required_feature": "FEATURE_SAVED_NETWORK_MANAGEMENT"},
+    {"request": "reconnect_saved", "success_body": "operation_accepted", "creates_operation": true, "required_feature": "FEATURE_SAVED_NETWORK_MANAGEMENT"},
+    {"request": "forget_saved", "success_body": "operation_accepted", "creates_operation": true, "required_feature": "FEATURE_SAVED_NETWORK_MANAGEMENT"},
+    {"request": "set_auto_connect", "success_body": "operation_accepted", "creates_operation": true, "required_feature": "FEATURE_AUTO_CONNECT_POLICY"},
+    {"request": "subscribe_events", "success_body": "event_subscription", "creates_operation": false, "required_feature": "FEATURE_ENCRYPTED_EVENTS"},
+    {"request": "finish_session", "success_body": null, "creates_operation": false, "required_feature": null}
+  ],
+  "new_operation": {
+    "operation_id": "NONZERO",
+    "state": "OPERATION_STATE_PENDING",
+    "failure": "FAILURE_REASON_NONE"
+  },
+  "allowed_while_busy": [
+    "get_capabilities",
+    "get_snapshot",
+    "get_operation",
+    "get_scan_results",
+    "cancel_operation",
+    "subscribe_events",
+    "finish_session"
+  ],
+  "cancel": {
+    "active": "ACCEPT_CURRENT_STATUS",
+    "retained_terminal": "RETURN_TERMINAL_STATUS",
+    "unknown": "NOT_FOUND",
+    "creates_operation": false
+  },
+  "top_level_failure": {
+    "OK": "FAILURE_REASON_NONE",
+    "RADIO_UNAVAILABLE": "FAILURE_REASON_RADIO_UNAVAILABLE",
+    "OTHER_ADMISSION_ERROR": "FAILURE_REASON_NONE"
+  }
+}

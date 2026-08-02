@@ -5,6 +5,18 @@ Changelog and versions follow Semantic Versioning while the contract matures.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-02
+
+### Changed
+
+- Made encrypted event delivery capability-gated and defined the complete
+  polling fallback.
+- Defined `proto-ver`, request/response invariants, identifier lifetimes, scan
+  normalization, and snapshot field precedence.
+- Replaced shallow fixture checks with descriptor-backed protobuf validation,
+  strict QR checks, negative cryptographic vectors, wire limits, and validator
+  unit tests.
+
 ### Clarified
 
 - Defined generation zero as the latest completed scan result and required a

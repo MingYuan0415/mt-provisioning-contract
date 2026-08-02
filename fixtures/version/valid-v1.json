@@ -1,0 +1,38 @@
+{
+  "without_events": {
+    "payload": {
+      "prov": {
+        "ver": "v1.0",
+        "sec_ver": 2,
+        "sec_patch_ver": 1,
+        "cap": ["mt-prov-v1"]
+      }
+    },
+    "features": [
+      "FEATURE_WIFI_SCAN",
+      "FEATURE_HIDDEN_NETWORK",
+      "FEATURE_SAVED_NETWORK_MANAGEMENT",
+      "FEATURE_AUTO_CONNECT_POLICY"
+    ],
+    "event_characteristic": false
+  },
+  "with_events": {
+    "payload": {
+      "prov": {
+        "ver": "v1.0",
+        "sec_ver": 2,
+        "sec_patch_ver": 1,
+        "cap": ["mt-prov-v1", "mt-events-v1"]
+      },
+      "future": {"ignored": true}
+    },
+    "features": [
+      "FEATURE_WIFI_SCAN",
+      "FEATURE_HIDDEN_NETWORK",
+      "FEATURE_SAVED_NETWORK_MANAGEMENT",
+      "FEATURE_AUTO_CONNECT_POLICY",
+      "FEATURE_ENCRYPTED_EVENTS"
+    ],
+    "event_characteristic": true
+  }
+}

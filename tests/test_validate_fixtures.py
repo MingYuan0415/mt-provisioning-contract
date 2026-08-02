@@ -1,0 +1,115 @@
+import tempfile
+import unittest
+from pathlib import Path
+
+from scripts.validate_fixtures import ContractValidationError
+from scripts.validate_fixtures import normalize_scan_records
+from scripts.validate_fixtures import require
+from scripts.validate_fixtures import validate_compatibility
+from scripts.validate_fixtures import validate_proto_version_payload
+from scripts.validate_fixtures import validate_qr_payload
+
+
+VALID_QR = {
+    "ver": "v1",
+    "name": "MT-A1B2C3",
+    "transport": "ble",
+    "security": 2,
+    "username": "microtech",
+    "pop": "AAECAwQFBgcICQoLDA0ODw",
+    "service": "d8f1c836-b47e-409f-8c21-73979e390e6b",
+    "device_id": "A1B2C3",
+}
+
+
+class ValidatorUnitTest(unittest.TestCase):
+    def test_require_raises_stable_error(self) -> None:
+        with self.assertRaisesRegex(ContractValidationError, "^expected failure$"):
+            require(False, "expected failure")
+
+    def test_qr_rejects_boolean_security(self) -> None:
+        candidate = dict(VALID_QR)
+        candidate["security"] = True
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "QR security must be int"):
+            validate_qr_payload(candidate)
+
+    def test_qr_rejects_non_base64url_pop(self) -> None:
+        candidate = dict(VALID_QR)
+        candidate["pop"] = "AAECAwQFBgcICQoLDA0OD!"
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "22 unpadded Base64URL"):
+            validate_qr_payload(candidate)
+
+    def test_proto_version_rejects_event_advertisement_mismatch(self) -> None:
+        payload = {
+            "prov": {
+                "ver": "v1.0",
+                "sec_ver": 2,
+                "sec_patch_ver": 1,
+                "cap": ["mt-prov-v1", "mt-events-v1"],
+            }
+        }
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "advertisement is inconsistent"):
+            validate_proto_version_payload(
+                payload,
+                ["FEATURE_ENCRYPTED_EVENTS"],
+                False,
+            )
+
+    def test_scan_normalizes_and_truncates(self) -> None:
+        records = [
+            {"ssid_hex": "", "security": "OPEN", "rssi": -10,
+             "channel": 1, "saved": False},
+            {"ssid_hex": "42", "security": "OPEN", "rssi": -50,
+             "channel": 6, "saved": False},
+            {"ssid_hex": "41", "security": "PERSONAL", "rssi": -30,
+             "channel": 11, "saved": True},
+            {"ssid_hex": "42", "security": "OPEN", "rssi": -20,
+             "channel": 1, "saved": False},
+        ]
+        normalized, truncated = normalize_scan_records(records, 1)
+        self.assertEqual(normalized, [{
+            "ssid_hex": "42",
+            "security": "OPEN",
+            "rssi": -20,
+            "channel": 1,
+            "saved": False,
+        }])
+        self.assertTrue(truncated)
+
+    def test_compatibility_rejects_unpinned_verified_entry(self) -> None:
+        manifest = """\
+schema: 1
+combinations:
+  - id: invalid-verified
+    status: verified
+    contract:
+      version: 0.1.1
+      commit: pending
+    android:
+      repository: MingYuan0415/mt-android-app
+      commit: pending
+    device:
+      repository: MingYuan0415/mt-device
+      commit: pending
+    verified_at: 2026-08-02T00:00:00Z
+    notes:
+      - This entry must be rejected.
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            compatibility = root / "compatibility"
+            compatibility.mkdir()
+            (compatibility / "known-good.yaml").write_text(
+                manifest,
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ContractValidationError,
+                                        "verified commits must be full SHAs"):
+                validate_compatibility(root, "0.1.1")
+
+
+if __name__ == "__main__":
+    unittest.main()

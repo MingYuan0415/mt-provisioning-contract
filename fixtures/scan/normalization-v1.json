@@ -1,0 +1,21 @@
+{
+  "capacity": 5,
+  "input": [
+    {"ssid_hex": "4d542d41", "security": "OPEN", "rssi": -70, "channel": 1, "saved": false},
+    {"ssid_hex": "4d542d41", "security": "OPEN", "rssi": -40, "channel": 6, "saved": false},
+    {"ssid_hex": "4d542d41", "security": "PERSONAL", "rssi": -50, "channel": 11, "saved": true},
+    {"ssid_hex": "", "security": "OPEN", "rssi": -10, "channel": 1, "saved": false},
+    {"ssid_hex": "4d542d42", "security": "PERSONAL", "rssi": -30, "channel": 1, "saved": false},
+    {"ssid_hex": "4d542d43", "security": "OPEN", "rssi": -60, "channel": 2, "saved": false},
+    {"ssid_hex": "4d542d44", "security": "PERSONAL", "rssi": -60, "channel": 3, "saved": false},
+    {"ssid_hex": "4d542d45", "security": "OPEN", "rssi": -80, "channel": 4, "saved": false}
+  ],
+  "expected": [
+    {"ssid_hex": "4d542d42", "security": "PERSONAL", "rssi": -30, "channel": 1, "saved": false},
+    {"ssid_hex": "4d542d41", "security": "OPEN", "rssi": -40, "channel": 6, "saved": false},
+    {"ssid_hex": "4d542d41", "security": "PERSONAL", "rssi": -50, "channel": 11, "saved": true},
+    {"ssid_hex": "4d542d43", "security": "OPEN", "rssi": -60, "channel": 2, "saved": false},
+    {"ssid_hex": "4d542d44", "security": "PERSONAL", "rssi": -60, "channel": 3, "saved": false}
+  ],
+  "truncated": true
+}

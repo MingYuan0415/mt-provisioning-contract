@@ -1,0 +1,44 @@
+[
+  {
+    "id": "missing-prov",
+    "payload": {},
+    "features": [],
+    "event_characteristic": false
+  },
+  {
+    "id": "wrong-version",
+    "payload": {"prov": {"ver": "v2.0", "sec_ver": 2, "sec_patch_ver": 1, "cap": ["mt-prov-v1"]}},
+    "features": [],
+    "event_characteristic": false
+  },
+  {
+    "id": "wrong-security-type",
+    "payload": {"prov": {"ver": "v1.0", "sec_ver": "2", "sec_patch_ver": 1, "cap": ["mt-prov-v1"]}},
+    "features": [],
+    "event_characteristic": false
+  },
+  {
+    "id": "missing-base-capability",
+    "payload": {"prov": {"ver": "v1.0", "sec_ver": 2, "sec_patch_ver": 1, "cap": []}},
+    "features": [],
+    "event_characteristic": false
+  },
+  {
+    "id": "duplicate-capability",
+    "payload": {"prov": {"ver": "v1.0", "sec_ver": 2, "sec_patch_ver": 1, "cap": ["mt-prov-v1", "mt-prov-v1"]}},
+    "features": [],
+    "event_characteristic": false
+  },
+  {
+    "id": "event-feature-missing-capability",
+    "payload": {"prov": {"ver": "v1.0", "sec_ver": 2, "sec_patch_ver": 1, "cap": ["mt-prov-v1"]}},
+    "features": ["FEATURE_ENCRYPTED_EVENTS"],
+    "event_characteristic": true
+  },
+  {
+    "id": "event-characteristic-missing",
+    "payload": {"prov": {"ver": "v1.0", "sec_ver": 2, "sec_patch_ver": 1, "cap": ["mt-prov-v1", "mt-events-v1"]}},
+    "features": ["FEATURE_ENCRYPTED_EVENTS"],
+    "event_characteristic": false
+  }
+]

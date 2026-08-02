@@ -2,16 +2,79 @@
   {
     "id": "get-capabilities-request",
     "type": "microtech.provisioning.v1.ProvisioningRequest",
-    "hex": "09010000000000000010015200"
+    "hex": "09010000000000000010015200",
+    "json": {
+      "request_id": "1",
+      "protocol_major": 1,
+      "get_capabilities": {}
+    }
   },
   {
     "id": "personal-credentials",
     "type": "microtech.provisioning.v1.WifiCredentials",
-    "hex": "0a074d542d54657374120970617373776f7264311802"
+    "hex": "0a074d542d54657374120970617373776f7264311802",
+    "json": {
+      "ssid": "TVQtVGVzdA==",
+      "password": "cGFzc3dvcmQx",
+      "security": "WIFI_SECURITY_PERSONAL"
+    }
   },
   {
     "id": "connected-event",
     "type": "microtech.provisioning.v1.ProvisioningEvent",
-    "hex": "090100000000000000521c090700000000000000100622074d542d546573742801300138014001"
+    "hex": "090100000000000000521c090700000000000000100622074d542d546573742801300138014001",
+    "json": {
+      "generation": "1",
+      "snapshot": {
+        "generation": "7",
+        "state": "WIFI_STATE_CONNECTED",
+        "ssid": "TVQtVGVzdA==",
+        "has_ipv4": true,
+        "saved_profile": true,
+        "profile_persisted": true,
+        "auto_connect": true
+      }
+    }
+  },
+  {
+    "id": "capabilities-v1-no-events",
+    "type": "microtech.provisioning.v1.Capabilities",
+    "hex": "0a0208011205312e322e331a064131423243332204010203042820303f380540b90148a001",
+    "json": {
+      "protocol_version": {"major": 1},
+      "firmware_version": "1.2.3",
+      "device_id": "A1B2C3",
+      "features": [
+        "FEATURE_WIFI_SCAN",
+        "FEATURE_HIDDEN_NETWORK",
+        "FEATURE_SAVED_NETWORK_MANAGEMENT",
+        "FEATURE_AUTO_CONNECT_POLICY"
+      ],
+      "max_ssid_bytes": 32,
+      "max_password_bytes": 63,
+      "max_scan_records": 5,
+      "minimum_event_mtu": 185,
+      "maximum_event_frame_bytes": 160
+    }
+  },
+  {
+    "id": "unknown-field-roundtrip",
+    "type": "microtech.provisioning.v1.ProvisioningRequest",
+    "hex": "09010000000000000010015200a00607",
+    "json": {
+      "request_id": "1",
+      "protocol_major": 1,
+      "get_capabilities": {}
+    },
+    "preserve_unknown": true
+  },
+  {
+    "id": "unknown-enum-roundtrip",
+    "type": "microtech.provisioning.v1.WifiCredentials",
+    "hex": "0a01581863",
+    "json": {
+      "ssid": "WA==",
+      "security": 99
+    }
   }
 ]
