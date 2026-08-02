@@ -1,0 +1,10 @@
+{
+  "ver": "v1",
+  "name": "MT-A1B2C3",
+  "transport": "ble",
+  "security": 2,
+  "username": "microtech",
+  "pop": "AAECAwQFBgcICQoLDA0ODw",
+  "service": "d8f1c836-b47e-409f-8c21-73979e390e6b",
+  "device_id": "A1B2C3"
+}

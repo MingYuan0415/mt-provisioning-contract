@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package microtech.provisioning.v1;
+
+import "microtech/provisioning/v1/types.proto";
+
+option java_multiple_files = true;
+option java_package = "com.microtech.provisioning.contract.v1";
+option optimize_for = LITE_RUNTIME;
+
+enum ResponseCode {
+  RESPONSE_CODE_UNSPECIFIED = 0;
+  RESPONSE_CODE_OK = 1;
+  RESPONSE_CODE_INVALID_ARGUMENT = 2;
+  RESPONSE_CODE_UNSUPPORTED_VERSION = 3;
+  RESPONSE_CODE_UNSUPPORTED_OPERATION = 4;
+  RESPONSE_CODE_BUSY = 5;
+  RESPONSE_CODE_NOT_FOUND = 6;
+  RESPONSE_CODE_RADIO_UNAVAILABLE = 7;
+  RESPONSE_CODE_UNAUTHENTICATED = 8;
+  RESPONSE_CODE_INTERNAL = 9;
+}
+
+message GetCapabilitiesRequest {}
+message GetSnapshotRequest {}
+message StartScanRequest {}
+message DisconnectRequest {}
+message ReconnectSavedRequest {}
+message ForgetSavedRequest {}
+message FinishSessionRequest {}
+
+message GetOperationRequest {
+  fixed64 operation_id = 1;
+}
+
+message GetScanResultsRequest {
+  fixed64 generation = 1;
+}
+
+message SetCredentialsRequest {
+  WifiCredentials credentials = 1;
+}
+
+message CancelOperationRequest {
+  fixed64 operation_id = 1;
+}
+
+message SetAutoConnectRequest {
+  bool enabled = 1;
+}
+
+message SubscribeEventsRequest {
+  uint32 negotiated_mtu = 1;
+}
+
+message ProvisioningRequest {
+  fixed64 request_id = 1;
+  uint32 protocol_major = 2;
+  oneof body {
+    GetCapabilitiesRequest get_capabilities = 10;
+    GetSnapshotRequest get_snapshot = 11;
+    GetOperationRequest get_operation = 12;
+    StartScanRequest start_scan = 13;
+    GetScanResultsRequest get_scan_results = 14;
+    SetCredentialsRequest set_credentials = 15;
+    CancelOperationRequest cancel_operation = 16;
+    DisconnectRequest disconnect = 17;
+    ReconnectSavedRequest reconnect_saved = 18;
+    ForgetSavedRequest forget_saved = 19;
+    SetAutoConnectRequest set_auto_connect = 20;
+    SubscribeEventsRequest subscribe_events = 21;
+    FinishSessionRequest finish_session = 22;
+  }
+}
+
+message OperationAccepted {
+  OperationStatus operation = 1;
+}
+
+message SubscribeEventsResponse {
+  bytes event_key = 1;
+  bytes nonce_prefix = 2;
+  fixed32 subscription_id = 3;
+  fixed64 sequence_baseline = 4;
+  WifiSnapshot snapshot = 5;
+  bool notifications_enabled = 6;
+}
+
+message ProvisioningResponse {
+  fixed64 request_id = 1;
+  ResponseCode code = 2;
+  FailureReason failure = 3;
+  oneof body {
+    Capabilities capabilities = 10;
+    WifiSnapshot snapshot = 11;
+    OperationStatus operation = 12;
+    ScanSnapshot scan_results = 13;
+    OperationAccepted operation_accepted = 14;
+    SubscribeEventsResponse event_subscription = 15;
+  }
+}

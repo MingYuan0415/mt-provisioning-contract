@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package microtech.provisioning.v1;
+
+option java_multiple_files = true;
+option java_package = "com.microtech.provisioning.contract.v1";
+option optimize_for = LITE_RUNTIME;
+
+message ProtocolVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+}
+
+enum Feature {
+  FEATURE_UNSPECIFIED = 0;
+  FEATURE_WIFI_SCAN = 1;
+  FEATURE_HIDDEN_NETWORK = 2;
+  FEATURE_SAVED_NETWORK_MANAGEMENT = 3;
+  FEATURE_AUTO_CONNECT_POLICY = 4;
+  FEATURE_ENCRYPTED_EVENTS = 5;
+}
+
+enum WifiSecurity {
+  WIFI_SECURITY_UNSPECIFIED = 0;
+  WIFI_SECURITY_OPEN = 1;
+  WIFI_SECURITY_PERSONAL = 2;
+  WIFI_SECURITY_UNSUPPORTED = 3;
+}
+
+enum WifiState {
+  WIFI_STATE_UNSPECIFIED = 0;
+  WIFI_STATE_UNAVAILABLE = 1;
+  WIFI_STATE_IDLE = 2;
+  WIFI_STATE_SCANNING = 3;
+  WIFI_STATE_CONNECTING = 4;
+  WIFI_STATE_OBTAINING_IP = 5;
+  WIFI_STATE_CONNECTED = 6;
+  WIFI_STATE_RETRY_WAIT = 7;
+  WIFI_STATE_SUSPENDED = 8;
+}
+
+enum OperationType {
+  OPERATION_TYPE_UNSPECIFIED = 0;
+  OPERATION_TYPE_SCAN = 1;
+  OPERATION_TYPE_SET_CREDENTIALS = 2;
+  OPERATION_TYPE_DISCONNECT = 3;
+  OPERATION_TYPE_RECONNECT_SAVED = 4;
+  OPERATION_TYPE_FORGET_SAVED = 5;
+  OPERATION_TYPE_SET_AUTO_CONNECT = 6;
+}
+
+enum OperationState {
+  OPERATION_STATE_UNSPECIFIED = 0;
+  OPERATION_STATE_PENDING = 1;
+  OPERATION_STATE_RUNNING = 2;
+  OPERATION_STATE_SUCCEEDED = 3;
+  OPERATION_STATE_FAILED = 4;
+  OPERATION_STATE_CANCELED = 5;
+}
+
+enum FailureReason {
+  FAILURE_REASON_UNSPECIFIED = 0;
+  FAILURE_REASON_NONE = 1;
+  FAILURE_REASON_AUTHENTICATION = 2;
+  FAILURE_REASON_AP_NOT_FOUND = 3;
+  FAILURE_REASON_ASSOCIATION_TIMEOUT = 4;
+  FAILURE_REASON_DHCP_TIMEOUT = 5;
+  FAILURE_REASON_LINK_LOST = 6;
+  FAILURE_REASON_RADIO_UNAVAILABLE = 7;
+  FAILURE_REASON_STORAGE = 8;
+  FAILURE_REASON_CANCELED = 9;
+  FAILURE_REASON_INTERNAL = 10;
+}
+
+message Capabilities {
+  ProtocolVersion protocol_version = 1;
+  string firmware_version = 2;
+  string device_id = 3;
+  repeated Feature features = 4;
+  uint32 max_ssid_bytes = 5;
+  uint32 max_password_bytes = 6;
+  uint32 max_scan_records = 7;
+  uint32 minimum_event_mtu = 8;
+  uint32 maximum_event_frame_bytes = 9;
+}
+
+message WifiCredentials {
+  bytes ssid = 1;
+  bytes password = 2;
+  WifiSecurity security = 3;
+}
+
+message WifiNetwork {
+  bytes ssid = 1;
+  sint32 rssi = 2;
+  uint32 channel = 3;
+  WifiSecurity security = 4;
+  bool saved = 5;
+}
+
+message ScanSnapshot {
+  fixed64 generation = 1;
+  repeated WifiNetwork networks = 2;
+  bool truncated = 3;
+}
+
+message OperationStatus {
+  fixed64 operation_id = 1;
+  OperationType type = 2;
+  OperationState state = 3;
+  FailureReason failure = 4;
+}
+
+message WifiSnapshot {
+  fixed64 generation = 1;
+  WifiState state = 2;
+  FailureReason failure = 3;
+  bytes ssid = 4;
+  bool has_ipv4 = 5;
+  bool saved_profile = 6;
+  bool profile_persisted = 7;
+  bool auto_connect = 8;
+  bool manual_hold = 9;
+  OperationStatus last_operation = 10;
+}

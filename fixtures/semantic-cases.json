@@ -1,0 +1,13 @@
+[
+  {"id":"personal-success","result":"SUCCEEDED","connected":true,"persisted":true},
+  {"id":"open-success","result":"SUCCEEDED","connected":true,"persisted":true},
+  {"id":"hidden-success","result":"SUCCEEDED","connected":true,"persisted":true},
+  {"id":"authentication-retains-old","result":"FAILED","failure":"AUTHENTICATION","old_profile_retained":true},
+  {"id":"storage-connected-not-persisted","result":"FAILED","failure":"STORAGE","connected":true,"persisted":false},
+  {"id":"scan-truncated","record_count":5,"truncated":true},
+  {"id":"disconnect-manual-hold","saved_profile":true,"manual_hold":true},
+  {"id":"reconnect-saved","result":"SUCCEEDED","manual_hold":false},
+  {"id":"forget-saved","result":"SUCCEEDED","saved_profile":false},
+  {"id":"disable-auto-connect-keeps-link","auto_connect":false,"connected":true},
+  {"id":"cancel-terminal","result":"CANCELED","failure":"CANCELED"}
+]

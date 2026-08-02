@@ -1,0 +1,7 @@
+[
+  {"id": "lowercase-device-id", "replace": {"device_id": "a1b2c3"}},
+  {"id": "name-mismatch", "replace": {"name": "MT-FFFFFF"}},
+  {"id": "wrong-security", "replace": {"security": 1}},
+  {"id": "padded-pop", "replace": {"pop": "AAECAwQFBgcICQoLDA0ODw=="}},
+  {"id": "wrong-service", "replace": {"service": "00000000-0000-0000-0000-000000000000"}}
+]

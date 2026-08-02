@@ -1,0 +1,14 @@
+schema: 1
+status: draft
+contract:
+  version: 0.1.0
+  commit: pending
+android:
+  repository: MingYuan0415/mt-android-app
+  commit: pending
+device:
+  repository: MingYuan0415/mt-device
+  commit: pending
+verified_at: null
+notes:
+  - No real-hardware interoperability result has been recorded.

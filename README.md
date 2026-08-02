@@ -1,4 +1,45 @@
 # MicroTech Provisioning Contract
 
-Shared provisioning protocol contract for the MicroTech firmware and Android app.
+This repository is the platform-neutral source of truth for provisioning
+communication between MicroTech firmware and companion applications.
 
+The v0.1 contract uses Protocol Buffers for business messages, ESP-IDF
+Protocomm Security 2 for the authenticated request/response session, and a
+separate AES-256-GCM protected BLE notification channel for state updates.
+
+## Repository layout
+
+- `proto/`: canonical wire schemas; generated platform code is not committed.
+- `docs/`: transport, security, state-machine, error, and compatibility rules.
+- `fixtures/`: cross-platform QR, protobuf, semantic, and cryptographic vectors.
+- `compatibility/`: device/app/contract combinations proven on real hardware.
+- `scripts/`: contract-only validation tooling used by CI.
+
+## Validate
+
+```sh
+buf format --diff --exit-code
+buf lint
+python -m pip install -r requirements.txt
+python scripts/validate_fixtures.py
+```
+
+For a pull request, also run:
+
+```sh
+buf breaking --against '.git#branch=main'
+```
+
+The repository is currently experimental. A `0.x` release is not evidence of
+device interoperability; only entries marked `verified` in
+`compatibility/known-good.yaml` carry that meaning.
+
+## Consumers
+
+Consumers pin this repository as a Git submodule. Firmware and applications
+own their code-generation tools and generated sources; this repository owns
+only the shared wire and behavior contract.
+
+## License
+
+MIT. ESP Protocomm Security 2 remains governed by Espressif's upstream license.

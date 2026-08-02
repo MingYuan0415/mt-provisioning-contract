@@ -1,0 +1,35 @@
+name: contract
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: 1.47.2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: buf format --diff --exit-code
+      - run: buf lint
+      - run: python scripts/validate_fixtures.py
+      - name: Check wire compatibility
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          if git cat-file -e origin/main:buf.yaml 2>/dev/null; then
+            buf breaking --against 'https://github.com/${{ github.repository }}.git#branch=main'
+          fi

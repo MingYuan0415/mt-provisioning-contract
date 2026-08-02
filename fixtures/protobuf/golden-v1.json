@@ -1,0 +1,17 @@
+[
+  {
+    "id": "get-capabilities-request",
+    "type": "microtech.provisioning.v1.ProvisioningRequest",
+    "hex": "09010000000000000010015200"
+  },
+  {
+    "id": "personal-credentials",
+    "type": "microtech.provisioning.v1.WifiCredentials",
+    "hex": "0a074d542d54657374120970617373776f7264311802"
+  },
+  {
+    "id": "connected-event",
+    "type": "microtech.provisioning.v1.ProvisioningEvent",
+    "hex": "090100000000000000521c090700000000000000100622074d542d546573742801300138014001"
+  }
+]

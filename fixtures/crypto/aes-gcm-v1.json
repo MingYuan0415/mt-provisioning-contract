@@ -1,0 +1,14 @@
+{
+  "algorithm": "AES-256-GCM",
+  "service_uuid": "d8f1c836-b47e-409f-8c21-73979e390e6b",
+  "key_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "nonce_prefix_hex": "a1b2c3d4",
+  "subscription_id": 270544960,
+  "sequence": 1,
+  "nonce_hex": "a1b2c3d40000000000000001",
+  "aad_hex": "4d542d50524f562d4556454e542d5631d8f1c836b47e409f8c2173979e390e6b102030400000000000000001",
+  "plaintext_type": "microtech.provisioning.v1.ProvisioningEvent",
+  "plaintext_hex": "090100000000000000521c090700000000000000100622074d542d546573742801300138014001",
+  "ciphertext_hex": "562e416ab99e2d8c4ae2492d008ef1091ee598d79d5794fc2a1033c48fee75322a48f53ea7d19e",
+  "tag_hex": "ff2ff177a32b27d5aca0e8071624dbee"
+}

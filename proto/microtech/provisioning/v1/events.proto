@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package microtech.provisioning.v1;
+
+import "microtech/provisioning/v1/types.proto";
+
+option java_multiple_files = true;
+option java_package = "com.microtech.provisioning.contract.v1";
+option optimize_for = LITE_RUNTIME;
+
+enum SessionEvent {
+  SESSION_EVENT_UNSPECIFIED = 0;
+  SESSION_EVENT_CLOSING = 1;
+}
+
+message ScanChanged {
+  fixed64 generation = 1;
+}
+
+message ProvisioningEvent {
+  fixed64 generation = 1;
+  oneof body {
+    WifiSnapshot snapshot = 10;
+    OperationStatus operation = 11;
+    ScanChanged scan_changed = 12;
+    SessionEvent session = 13;
+  }
+}
+
+message EncryptedEventFrame {
+  fixed32 subscription_id = 1;
+  fixed64 sequence = 2;
+  bytes ciphertext = 3;
+  bytes tag = 4;
+}
