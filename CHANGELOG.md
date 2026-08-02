@@ -5,6 +5,11 @@ Changelog and versions follow Semantic Versioning while the contract matures.
 
 ## [Unreleased]
 
+### Clarified
+
+- Defined generation zero as the latest completed scan result and required a
+  final full snapshot refresh for polling clients.
+
 ## [0.1.0] - 2026-08-02
 
 ### Added

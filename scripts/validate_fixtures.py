@@ -87,6 +87,14 @@ def validate_other_fixtures() -> None:
 
     semantic = load_json("fixtures/semantic-cases.json")
     assert len({case["id"] for case in semantic}) == len(semantic)
+    semantic_by_id = {case["id"]: case for case in semantic}
+    assert semantic_by_id["scan-latest-generation-zero"] == {
+        "id": "scan-latest-generation-zero",
+        "requested_generation": 0,
+        "result": "LATEST_COMPLETED",
+    }
+    assert semantic_by_id["poll-terminal-refresh"]["poll_interval_ms"] == 500
+    assert semantic_by_id["poll-terminal-refresh"]["final_snapshot_required"]
     assert (ROOT / "VERSION").read_text(encoding="ascii").strip() == "0.1.0"
 
 
