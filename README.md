@@ -46,6 +46,8 @@ own their code-generation tools and generated sources; this repository owns
 only the shared wire and behavior contract.
 
 See `docs/conformance.md` for the consumer acceptance requirements.
+The development-only sustained Security 2 workload is defined in
+[`docs/stress-session.md`](docs/stress-session.md).
 
 ## License
 

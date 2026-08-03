@@ -10,7 +10,8 @@ and descriptor output are temporary and are never committed here.
 The fixture validator checks canonical protobuf bytes and decoded fields,
 malformed wire rejection, QR typing and Base64URL rules, event capability
 gating, request/response mappings, scan normalization, cryptographic positive
-and negative vectors, compatibility metadata, and maximum frame sizes.
+and negative vectors, the stress-session workload, compatibility metadata, and
+maximum frame sizes.
 
 ## Consumer checks
 
@@ -24,6 +25,10 @@ its generator configuration and generated sources. A consumer must:
 - preserve or safely ignore unknown protobuf fields and reject unknown enum
   behavior rather than guessing;
 - prove that secrets are neither logged nor retained beyond their lifecycle.
+
+Consumers implementing the development stress campaign must also pass the
+[`stress-session`](stress-session.md) fixture. This workload is not a new
+device capability and must not be advertised through the protobuf protocol.
 
 ## Interoperability
 

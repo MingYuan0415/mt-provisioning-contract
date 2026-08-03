@@ -5,6 +5,15 @@ Changelog and versions follow Semantic Versioning while the contract matures.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-04
+
+### Added
+
+- Defined the Security 2 `GetSnapshot` stress-session workload used by the
+  firmware concurrency campaign.
+- Added a strict stress-session fixture and validator coverage without changing
+  the protobuf wire schema.
+
 ## [0.1.1] - 2026-08-02
 
 ### Changed

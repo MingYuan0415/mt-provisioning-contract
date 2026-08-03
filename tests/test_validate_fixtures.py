@@ -8,6 +8,7 @@ from scripts.validate_fixtures import require
 from scripts.validate_fixtures import validate_compatibility
 from scripts.validate_fixtures import validate_proto_version_payload
 from scripts.validate_fixtures import validate_qr_payload
+from scripts.validate_fixtures import validate_stress_session_payload
 
 
 VALID_QR = {
@@ -23,6 +24,41 @@ VALID_QR = {
 
 
 class ValidatorUnitTest(unittest.TestCase):
+    @staticmethod
+    def _stress_session() -> dict:
+        return {
+            "schema": 1,
+            "transport": "ble",
+            "security": 2,
+            "bootstrap_requests": ["get_capabilities"],
+            "steady_request": "get_snapshot",
+            "interval_ms": 2000,
+            "maximum_idle_ms": 10000,
+            "maximum_in_flight": 1,
+            "request_id": {
+                "nonzero": True,
+                "unique_per_session": True,
+                "retry_reuses_id": False,
+            },
+            "forbidden_steady_requests": [
+                "get_capabilities",
+                "get_operation",
+                "start_scan",
+                "get_scan_results",
+                "set_credentials",
+                "cancel_operation",
+                "disconnect",
+                "reconnect_saved",
+                "forget_saved",
+                "set_auto_connect",
+                "subscribe_events",
+                "finish_session",
+            ],
+            "steady_disconnects": 0,
+            "steady_reconnects": 0,
+            "blind_retry": False,
+        }
+
     def test_require_raises_stable_error(self) -> None:
         with self.assertRaisesRegex(ContractValidationError, "^expected failure$"):
             require(False, "expected failure")
@@ -78,6 +114,28 @@ class ValidatorUnitTest(unittest.TestCase):
             "saved": False,
         }])
         self.assertTrue(truncated)
+
+    def test_stress_session_rejects_parallel_requests(self) -> None:
+        candidate = self._stress_session()
+        candidate["maximum_in_flight"] = 2
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "stress requests must be serial"):
+            validate_stress_session_payload(candidate)
+
+    def test_stress_session_rejects_finish_session(self) -> None:
+        candidate = self._stress_session()
+        candidate["forbidden_steady_requests"].remove("finish_session")
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "forbidden request list mismatch"):
+            validate_stress_session_payload(candidate)
+
+    def test_stress_session_rejects_integer_request_id_flags(self) -> None:
+        candidate = self._stress_session()
+        candidate["request_id"]["nonzero"] = 1
+        with self.assertRaisesRegex(
+                ContractValidationError,
+                "stress request_id.nonzero must be bool"):
+            validate_stress_session_payload(candidate)
 
     def test_compatibility_rejects_unpinned_verified_entry(self) -> None:
         manifest = """\

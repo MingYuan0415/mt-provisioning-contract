@@ -1,9 +1,9 @@
 schema: 1
 combinations:
-  - id: initial-v0.1.1
+  - id: initial-v0.1.2
     status: draft
     contract:
-      version: 0.1.1
+      version: 0.1.2
       commit: pending
     android:
       repository: MingYuan0415/mt-android-app

@@ -77,6 +77,20 @@ SEMANTIC_CASES = {
     "snapshot-unsaved-target",
     "finish-response-before-close",
 }
+STRESS_FORBIDDEN_REQUESTS = [
+    "get_capabilities",
+    "get_operation",
+    "start_scan",
+    "get_scan_results",
+    "set_credentials",
+    "cancel_operation",
+    "disconnect",
+    "reconnect_saved",
+    "forget_saved",
+    "set_auto_connect",
+    "subscribe_events",
+    "finish_session",
+]
 
 
 class ContractValidationError(ValueError):
@@ -741,6 +755,77 @@ def validate_wire_limits(root: Path, registry: DescriptorRegistry) -> tuple[int,
     return event_frame_size, encrypted_response_size
 
 
+def validate_stress_session_payload(payload: Any) -> None:
+    require_exact_type(payload, dict, "stress session")
+    require(set(payload) == {
+        "schema",
+        "transport",
+        "security",
+        "bootstrap_requests",
+        "steady_request",
+        "interval_ms",
+        "maximum_idle_ms",
+        "maximum_in_flight",
+        "request_id",
+        "forbidden_steady_requests",
+        "steady_disconnects",
+        "steady_reconnects",
+        "blind_retry",
+    }, "stress session fields mismatch")
+    require(payload["schema"] == 1, "stress session schema must be 1")
+    require(payload["transport"] == "ble", "stress transport must be ble")
+    require_exact_type(payload["security"], int, "stress security")
+    require(payload["security"] == 2, "stress security must be 2")
+    require(payload["bootstrap_requests"] == ["get_capabilities"],
+            "stress bootstrap request mismatch")
+    require(payload["steady_request"] == "get_snapshot",
+            "stress steady request must be get_snapshot")
+    require_exact_type(payload["interval_ms"], int, "stress interval_ms")
+    require(payload["interval_ms"] == 2000,
+            "stress request interval must be 2000 ms")
+    require_exact_type(payload["maximum_idle_ms"], int,
+                       "stress maximum_idle_ms")
+    require(payload["maximum_idle_ms"] == 10000,
+            "stress maximum idle must be 10000 ms")
+    require_exact_type(payload["maximum_in_flight"], int,
+                       "stress maximum_in_flight")
+    require(payload["maximum_in_flight"] == 1,
+            "stress requests must be serial")
+    request_id = payload["request_id"]
+    require_exact_type(request_id, dict, "stress request_id")
+    require(set(request_id) == {
+        "nonzero",
+        "unique_per_session",
+        "retry_reuses_id",
+    }, "stress request-id fields mismatch")
+    for name in ("nonzero", "unique_per_session", "retry_reuses_id"):
+        require_exact_type(request_id[name], bool,
+                           f"stress request_id.{name}")
+    require(request_id == {
+        "nonzero": True,
+        "unique_per_session": True,
+        "retry_reuses_id": False,
+    }, "stress request-id policy mismatch")
+    require(payload["forbidden_steady_requests"] ==
+            STRESS_FORBIDDEN_REQUESTS,
+            "stress forbidden request list mismatch")
+    require_exact_type(payload["steady_disconnects"], int,
+                       "stress steady_disconnects")
+    require_exact_type(payload["steady_reconnects"], int,
+                       "stress steady_reconnects")
+    require(payload["steady_disconnects"] == 0 and
+            payload["steady_reconnects"] == 0,
+            "stress steady connection must remain open")
+    require_exact_type(payload["blind_retry"], bool, "stress blind_retry")
+    require(not payload["blind_retry"], "stress blind retry must be disabled")
+
+
+def validate_stress_session(root: Path) -> None:
+    validate_stress_session_payload(
+        load_json(root, "fixtures/stress-session-v1.json")
+    )
+
+
 def _valid_commit(value: Any) -> bool:
     return type(value) is str and re.fullmatch(r"[0-9a-f]{40}", value) is not None
 
@@ -806,7 +891,7 @@ def validate_release(root: Path) -> str:
         changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
     except (OSError, UnicodeError) as error:
         raise ContractValidationError(f"cannot read release metadata: {error}") from error
-    require(version == "0.1.1", "contract VERSION must be 0.1.1")
+    require(version == "0.1.2", "contract VERSION must be 0.1.2")
     require(f"## [{version}] - " in changelog, "VERSION is missing from CHANGELOG")
     return version
 
@@ -842,6 +927,7 @@ def run(root: Path, descriptor_path: Path | None = None) -> tuple[int, int]:
     validate_scan(root)
     validate_semantics(root)
     sizes = validate_wire_limits(root, registry)
+    validate_stress_session(root)
     validate_compatibility(root, version)
     validate_markdown_links(root)
     return sizes
