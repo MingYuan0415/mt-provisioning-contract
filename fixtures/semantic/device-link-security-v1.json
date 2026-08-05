@@ -1,0 +1,133 @@
+[
+  {
+    "id": "prepare-without-commit-clears",
+    "authorization_persisted": false,
+    "provisional_bond_cleared": true,
+    "recovery_state": "UNBOUND"
+  },
+  {
+    "id": "commit-nvs-failure-keeps-unbound",
+    "authorization_persisted": false,
+    "error_class": "STORAGE",
+    "recovery_state": "UNBOUND"
+  },
+  {
+    "id": "commit-response-lost-authenticated",
+    "authorization_persisted": true,
+    "client_recovery": "TEST_LONG_TERM_CREDENTIAL",
+    "recovery_state": "AUTHORIZED"
+  },
+  {
+    "id": "idempotent-authorize-commit",
+    "retry_with_same_txn": true,
+    "exactly_one_record": true,
+    "recovery_state": "AUTHORIZED"
+  },
+  {
+    "id": "bond-without-authorization-deleted",
+    "orphan_bond_removed": true,
+    "recovery_state": "UNBOUND"
+  },
+  {
+    "id": "authorization-without-bond-invalidated",
+    "record_invalidated": true,
+    "requires_binding_window": true
+  },
+  {
+    "id": "app-credential-lost-requires-rebind",
+    "fallback_to_bond_only": false,
+    "requires_local_confirmation": true
+  },
+  {
+    "id": "wrong-app-credential-rejected",
+    "handshake_result": "REJECTED",
+    "recovery_state": "UNCHANGED"
+  },
+  {
+    "id": "replacement-crash-unbound-not-dual",
+    "old_authorization_invalidated_before_bond_deleted": true,
+    "worst_state": "UNBOUND"
+  },
+  {
+    "id": "unknown-peer-outside-window-rejected",
+    "pairing_allowed": false,
+    "connection_result": "REJECTED"
+  },
+  {
+    "id": "second-acl-rejected",
+    "admitted": false,
+    "existing_link_preserved": true
+  },
+  {
+    "id": "factory-reset-clears-all",
+    "authorization": "CLEARED",
+    "bond": "CLEARED",
+    "cccd": "CLEARED",
+    "wifi_profile": "CLEARED",
+    "transfer": "CLEARED"
+  },
+  {
+    "id": "late-callback-ignored",
+    "generation": "STALE",
+    "effect": "NONE"
+  },
+  {
+    "id": "restored-cccd-not-authorizing",
+    "tx_allowed_before_authorization": false,
+    "snapshot_after_authorization": true
+  },
+  {
+    "id": "sc-only-no-legacy",
+    "legacy_pairing": false,
+    "key_size_bytes": 16,
+    "maximum_bonds": 1
+  },
+  {
+    "id": "identity-key-not-rpa",
+    "identity_key": "ADDRESS_TYPE_AND_VALUE",
+    "forbidden_keys": [
+      "OTA_ADDRESS",
+      "CONN_HANDLE",
+      "IRK_HASH",
+      "DISCRIMINATOR"
+    ]
+  },
+  {
+    "id": "indication-timeout-closes-session",
+    "session_closed": true,
+    "next_request_allowed": false,
+    "recovery": "NEW_SESSION_AND_QUERY"
+  },
+  {
+    "id": "ambiguous-mutation-queries-first",
+    "blind_retry": false,
+    "recovery": "QUERY_SNAPSHOT_OR_OPERATION"
+  },
+  {
+    "id": "event-gap-snapshot-recovery",
+    "gap_action": "FETCH_FULL_SNAPSHOT",
+    "replay_infinite_history": false
+  },
+  {
+    "id": "boot-id-resets-sequence",
+    "event_sequence_scope": "BOOT",
+    "request_id_scope": "SESSION",
+    "operation_id_scope": "BOOT",
+    "transfer_id_scope": "TRANSFER_LIFETIME"
+  },
+  {
+    "id": "duplicate-request-id-conflict",
+    "result": "LINK_ERROR_CONFLICT",
+    "recovery": "FRESH_REQUEST_ID_OR_QUERY"
+  },
+  {
+    "id": "event-sequence-no-wrap",
+    "wrap": false,
+    "max_reached_action": "STOP_PUBLICATION_UNTIL_REBOOT"
+  },
+  {
+    "id": "snapshot-atomic-baseline",
+    "sequence_baseline_equals_snapshot_sequence": true,
+    "events_start_at": "BASELINE_PLUS_ONE"
+  }
+]

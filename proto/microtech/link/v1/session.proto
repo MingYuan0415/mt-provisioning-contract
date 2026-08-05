@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package microtech.link.v1;
+
+option java_multiple_files = true;
+option java_package = "com.microtech.link.contract.v1";
+option optimize_for = LITE_RUNTIME;
+
+enum BindingState {
+  BINDING_STATE_UNSPECIFIED = 0;
+  BINDING_STATE_UNBOUND = 1;
+  BINDING_STATE_PAIRING_WINDOW = 2;
+  BINDING_STATE_BOUND = 3;
+}
+
+enum AuthorizationState {
+  AUTHORIZATION_STATE_UNSPECIFIED = 0;
+  AUTHORIZATION_STATE_UNAUTHORIZED = 1;
+  AUTHORIZATION_STATE_BOOTSTRAP_AUTHENTICATED = 2;
+  AUTHORIZATION_STATE_CONFIRMATION_PENDING = 3;
+  AUTHORIZATION_STATE_PREPARED = 4;
+  AUTHORIZATION_STATE_AUTHORIZED = 5;
+}
+
+enum PublicLinkFlag {
+  PUBLIC_LINK_FLAG_UNSPECIFIED = 0;
+  PUBLIC_LINK_FLAG_BINDABLE = 1;
+  PUBLIC_LINK_FLAG_BOUND = 2;
+}
+
+message PublicLinkState {
+  uint32 protocol_major = 1;
+  uint32 protocol_minor = 2;
+  uint32 profile_major = 3;
+  uint32 profile_minor = 4;
+  fixed64 boot_id = 5;
+  uint32 state_flags = 6;
+}
+
+message LinkState {
+  fixed64 boot_id = 1;
+  BindingState binding_state = 2;
+  AuthorizationState authorization_state = 3;
+  bool encrypted = 4;
+  bool secure_connections_bond_verified = 5;
+  bool identity_known = 6;
+}
+
+message GetLinkSnapshotRequest {}
+
+message AuthorizePrepareRequest {}
+
+message AuthorizePrepareResponse {
+  fixed64 authorization_txn_id = 1;
+  bytes credential_id = 2;
+  bytes application_password = 3;
+  uint32 expires_in_ms = 4;
+}
+
+message AuthorizeCommitRequest {
+  fixed64 authorization_txn_id = 1;
+  bytes credential_id = 2;
+}
+
+message AuthorizationResult {
+  bytes credential_id = 1;
+  bytes device_authorization_id = 2;
+  AuthorizationState state = 3;
+}

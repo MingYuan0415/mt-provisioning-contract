@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "advertising_version": 1,
+  "short_name": "MT",
+  "service_uuid": "3e203192-b4bb-4e59-a28a-3d1157854ea3",
+  "flags": {"bindable": 1},
+  "discriminator_bytes": 3,
+  "max_payload_bytes": 31,
+  "valid_payloads": [
+    {
+      "id": "pairing-window",
+      "bindable": true,
+      "discriminator": 11259375,
+      "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0101efcdab03084d54"
+    },
+    {
+      "id": "bound-no-discriminator",
+      "bindable": false,
+      "discriminator": 0,
+      "hex": "0201061621a34e8557113d8aa2594ebbb49231203e010000000003084d54"
+    }
+  ],
+  "invalid_payloads": [
+    {"id": "oversize", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0101efcdab03084d540000"},
+    {"id": "truncated-service-data", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0101ef"},
+    {"id": "unknown-ad-version", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0201efcdab03084d54"},
+    {"id": "unknown-flag-bit", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0102efcdab03084d54"},
+    {"id": "wrong-uuid", "hex": "0201061621a34e8557113d8aa2594ebbb49231203f0101efcdab03084d54"},
+    {"id": "wrong-ad-type", "hex": "0201061622a34e8557113d8aa2594ebbb49231203e0101efcdab03084d54"},
+    {"id": "non-bindable-discriminator", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0100efcdab03084d54"}
+  ]
+}

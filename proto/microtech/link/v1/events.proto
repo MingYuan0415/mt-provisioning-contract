@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package microtech.link.v1;
+
+import "microtech/link/v1/session.proto";
+
+option java_multiple_files = true;
+option java_package = "com.microtech.link.contract.v1";
+option optimize_for = LITE_RUNTIME;
+
+message SubscribeEventsRequest {}
+
+message EventSubscription {
+  bytes event_key = 1;
+  bytes nonce_prefix = 2;
+  fixed32 subscription_id = 3;
+  fixed64 sequence_baseline = 4;
+  Snapshot snapshot = 5;
+}
+
+message Snapshot {
+  fixed64 event_sequence = 1;
+  LinkState link_state = 2;
+}
+
+message LinkStateChanged {
+  LinkState link_state = 1;
+}
+
+message Event {
+  fixed64 event_sequence = 1;
+  oneof body {
+    LinkStateChanged link_state_changed = 10;
+  }
+}
+
+message EncryptedEventFrame {
+  fixed32 subscription_id = 1;
+  fixed64 sequence = 2;
+  bytes ciphertext = 3;
+  bytes tag = 4;
+}

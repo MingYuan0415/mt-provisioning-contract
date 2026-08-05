@@ -1,0 +1,113 @@
+[
+  {
+    "id": "capabilities-request",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "0801190807060504030201520b0901000000000000005200",
+    "json": {
+      "protocol_major": 1,
+      "boot_id": "72623859790382856",
+      "request": {
+        "request_id": "1",
+        "get_capabilities": {}
+      }
+    }
+  },
+  {
+    "id": "authorize-prepare-response",
+    "type": "microtech.link.v1.Response",
+    "hex": "090100000000000000100162310911100f0e0d0c0b0a12100102030405060708090a0b0c0d0e0f101a104646464646464646464646464646464620c0cf24",
+    "json": {
+      "request_id": "1",
+      "error": "LINK_ERROR_OK",
+      "authorization_prepare": {
+        "authorization_txn_id": "723685415333072913",
+        "credential_id": "AQIDBAUGBwgJCgsMDQ4PEA==",
+        "application_password": "RkZGRkZGRkZGRkZGRkZGRg==",
+        "expires_in_ms": 600000
+      }
+    }
+  },
+  {
+    "id": "authorize-commit-request",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "080119080706050403020152260902000000000000006a1b0911100f0e0d0c0b0a12100102030405060708090a0b0c0d0e0f10",
+    "json": {
+      "protocol_major": 1,
+      "boot_id": "72623859790382856",
+      "request": {
+        "request_id": "2",
+        "authorize_commit": {
+          "authorization_txn_id": "723685415333072913",
+          "credential_id": "AQIDBAUGBwgJCgsMDQ4PEA=="
+        }
+      }
+    }
+  },
+  {
+    "id": "link-snapshot",
+    "type": "microtech.link.v1.Snapshot",
+    "hex": "090700000000000000121309080706050403020110031805200128013001",
+    "json": {
+      "event_sequence": "7",
+      "link_state": {
+        "boot_id": "72623859790382856",
+        "binding_state": "BINDING_STATE_BOUND",
+        "authorization_state": "AUTHORIZATION_STATE_AUTHORIZED",
+        "encrypted": true,
+        "secure_connections_bond_verified": true,
+        "identity_known": true
+      }
+    }
+  },
+  {
+    "id": "transfer-start-control",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "08011908070605040302017238098877665544332211522d08011100000100000000001a20abababababababababababababababababababababababababababababababab",
+    "json": {
+      "protocol_major": 1,
+      "boot_id": "72623859790382856",
+      "transfer_control": {
+        "transfer_id": "1234605616436508552",
+        "start": {
+          "type": "TRANSFER_TYPE_TEST_FILE",
+          "total_length": "65536",
+          "sha256": "q6urq6urq6urq6urq6urq6urq6urq6urq6urq6urq6s="
+        }
+      }
+    }
+  },
+  {
+    "id": "unknown-field-roundtrip",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "0801190807060504030201520b0901000000000000005200c03e07",
+    "json": {
+      "protocol_major": 1,
+      "boot_id": "72623859790382856",
+      "request": {
+        "request_id": "1",
+        "get_capabilities": {}
+      }
+    },
+    "preserve_unknown": true
+  },
+  {
+    "id": "unknown-enum-response",
+    "type": "microtech.link.v1.Response",
+    "hex": "0901000000000000001063",
+    "json": {
+      "request_id": "1",
+      "error": 99
+    }
+  },
+  {
+    "id": "public-link-state",
+    "type": "microtech.link.v1.PublicLinkState",
+    "hex": "080118012908070605040302013001",
+    "json": {
+      "protocol_major": 1,
+      "profile_major": 1,
+      "boot_id": "72623859790382856",
+      "state_flags": 1
+    }
+  }
+]

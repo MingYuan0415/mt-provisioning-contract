@@ -49,6 +49,22 @@ See `docs/conformance.md` for the consumer acceptance requirements.
 The development-only sustained Security 2 workload is defined in
 [`docs/stress-session.md`](docs/stress-session.md).
 
+## Device Link draft
+
+The next-generation persistent companion link is defined separately from the
+stable provisioning v1 wire. Its draft sources are:
+
+- `proto/microtech/link/v1/` for typed messages;
+- `profiles/device-link-v1.yaml` for the static GATT profile and limits;
+- [`docs/device-link-gatt-v1.md`](docs/device-link-gatt-v1.md);
+- [`docs/device-link-framing-v1.md`](docs/device-link-framing-v1.md);
+- [`docs/device-link-security-v1.md`](docs/device-link-security-v1.md);
+- [`docs/device-link-lifecycle-v1.md`](docs/device-link-lifecycle-v1.md);
+- [`docs/device-link-discovery-v1.md`](docs/device-link-discovery-v1.md).
+
+Draft Device Link artifacts do not change or deprecate provisioning v1 and are
+not evidence of Android interoperability.
+
 ## License
 
 MIT. ESP Protocomm Security 2 remains governed by Espressif's upstream license.

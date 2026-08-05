@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package microtech.link.v1;
+
+import "microtech/link/v1/capabilities.proto";
+import "microtech/link/v1/errors.proto";
+import "microtech/link/v1/events.proto";
+import "microtech/link/v1/session.proto";
+import "microtech/link/v1/transfer.proto";
+
+option java_multiple_files = true;
+option java_package = "com.microtech.link.contract.v1";
+option optimize_for = LITE_RUNTIME;
+
+enum EnvelopeFlag {
+  ENVELOPE_FLAG_UNSPECIFIED = 0;
+  ENVELOPE_FLAG_RECOVERY_QUERY = 1;
+}
+
+message Request {
+  fixed64 request_id = 1;
+  oneof body {
+    GetCapabilitiesRequest get_capabilities = 10;
+    GetLinkSnapshotRequest get_link_snapshot = 11;
+    AuthorizePrepareRequest authorize_prepare = 12;
+    AuthorizeCommitRequest authorize_commit = 13;
+    SubscribeEventsRequest subscribe_events = 14;
+  }
+}
+
+message Response {
+  fixed64 request_id = 1;
+  LinkError error = 2;
+  oneof body {
+    Capabilities capabilities = 10;
+    Snapshot snapshot = 11;
+    AuthorizePrepareResponse authorization_prepare = 12;
+    AuthorizationResult authorization_result = 13;
+    EventSubscription event_subscription = 14;
+  }
+}
+
+message Envelope {
+  uint32 protocol_major = 1;
+  uint32 protocol_minor = 2;
+  fixed64 boot_id = 3;
+  repeated EnvelopeFlag flags = 4;
+  oneof body {
+    Request request = 10;
+    Response response = 11;
+    Event event = 12;
+    Snapshot snapshot = 13;
+    TransferControl transfer_control = 14;
+  }
+}

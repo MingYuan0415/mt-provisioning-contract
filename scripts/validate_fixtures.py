@@ -14,6 +14,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+_PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+if str(_PACKAGE_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PACKAGE_ROOT))
+
 import yaml
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -916,6 +920,8 @@ def validate_all_json(root: Path) -> None:
 
 
 def run(root: Path, descriptor_path: Path | None = None) -> tuple[int, int]:
+    from scripts.validate_device_link import validate_device_link
+
     validate_all_json(root)
     version = validate_release(root)
     registry = DescriptorRegistry(build_descriptor_set(root, descriptor_path))
@@ -928,6 +934,7 @@ def run(root: Path, descriptor_path: Path | None = None) -> tuple[int, int]:
     validate_semantics(root)
     sizes = validate_wire_limits(root, registry)
     validate_stress_session(root)
+    validate_device_link(root, registry)
     validate_compatibility(root, version)
     validate_markdown_links(root)
     return sizes

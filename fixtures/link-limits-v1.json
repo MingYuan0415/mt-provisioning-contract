@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "reassembly_idle_timeout_ms": 5000,
+  "indication_confirm_timeout_ms": 2000,
+  "public_link_state_max_bytes": 20,
+  "public_link_state_max_version": 127,
+  "public_link_state_valid_flags": [0, 1, 2, 3],
+  "max_event_sequence": "18446744073709551615",
+  "advertising": {
+    "version": 1,
+    "max_payload_bytes": 31,
+    "service_data_ad_type": 33,
+    "service_uuid_bytes": 16,
+    "discriminator_bytes": 3
+  }
+}

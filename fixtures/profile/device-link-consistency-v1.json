@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "name": "MicroTech Device Link",
+  "profile_version": {
+    "major": 1,
+    "minor": 0
+  },
+  "protocol_package": "microtech.link.v1",
+  "preferred_att_mtu": 498,
+  "framing": {
+    "version": 1,
+    "header_bytes": 8,
+    "byte_order": "little",
+    "maximum_control_message_bytes": 4096,
+    "maximum_session_message_bytes": 1024
+  },
+  "security": {
+    "le_secure_connections_only": true,
+    "encryption_key_bytes": 16,
+    "maximum_bonds": 1,
+    "protocomm_security_version": 2,
+    "protocomm_security_patch_version": 1,
+    "local_confirmation_required": true,
+    "application_credential_required": true
+  },
+  "services": [
+    {
+      "name": "device_link",
+      "uuid": "3e203192-b4bb-4e59-a28a-3d1157854ea3",
+      "characteristics": [
+        {
+          "name": "link_state",
+          "uuid": "a4781f24-dc6b-44eb-864f-23a8a4ef82b5",
+          "properties": [
+            "read",
+            "notify"
+          ],
+          "read_admission": "public_minimum",
+          "public_wire": "PublicLinkState",
+          "public_max_bytes": 20,
+          "tx_admission": "authorized"
+        },
+        {
+          "name": "session_rx",
+          "uuid": "4801e643-cb4c-4dd8-b85c-e6e0fccdf0a2",
+          "properties": [
+            "write"
+          ],
+          "write_admission": "encrypted_sc_bond"
+        },
+        {
+          "name": "session_tx",
+          "uuid": "2be85710-beac-402c-83a1-ec5fd2af052a",
+          "properties": [
+            "indicate"
+          ],
+          "tx_admission": "encrypted_sc_bond"
+        },
+        {
+          "name": "control_rx",
+          "uuid": "81a14662-669d-4772-8e0c-fb3d403d13c8",
+          "properties": [
+            "write"
+          ],
+          "write_admission": "authorized"
+        },
+        {
+          "name": "control_tx",
+          "uuid": "11735ac7-1e40-4a9c-b562-b8f64c03883a",
+          "properties": [
+            "indicate",
+            "notify"
+          ],
+          "response_admission": "authorized",
+          "event_admission": "authorized"
+        }
+      ]
+    },
+    {
+      "name": "transfer",
+      "uuid": "2b837278-c4ef-426e-9fa0-4e32880ac31c",
+      "characteristics": [
+        {
+          "name": "transfer_rx",
+          "uuid": "f3598d4d-e9ff-471e-97ac-76728628f0a1",
+          "properties": [
+            "write_without_response"
+          ],
+          "write_admission": "authorized_transfer"
+        },
+        {
+          "name": "transfer_tx",
+          "uuid": "a99aa0f1-7dd0-46de-a17d-a619efb2c595",
+          "properties": [
+            "notify"
+          ],
+          "tx_admission": "authorized_transfer"
+        },
+        {
+          "name": "transfer_state",
+          "uuid": "ec4125f1-16d5-4a02-96ba-b7efb894d49b",
+          "properties": [
+            "read",
+            "notify"
+          ],
+          "read_admission": "authorized",
+          "tx_admission": "authorized"
+        }
+      ]
+    }
+  ],
+  "timeouts": {
+    "reassembly_idle_ms": 5000,
+    "indication_confirm_ms": 2000
+  },
+  "advertising": {
+    "version": 1,
+    "short_name": "MT",
+    "service_data": {
+      "uuid": "3e203192-b4bb-4e59-a28a-3d1157854ea3",
+      "discriminator_bytes": 3
+    },
+    "flags": {
+      "bindable": 1
+    }
+  }
+}

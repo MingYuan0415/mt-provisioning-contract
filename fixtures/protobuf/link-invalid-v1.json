@@ -1,0 +1,22 @@
+[
+  {
+    "id": "truncated-fixed64",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "1908"
+  },
+  {
+    "id": "truncated-submessage",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "520200"
+  },
+  {
+    "id": "invalid-wire-type",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "0f"
+  },
+  {
+    "id": "truncated-transfer-control",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "720a0112"
+  }
+]

@@ -1,14 +1,22 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
 from scripts.validate_fixtures import ContractValidationError
+from scripts.validate_fixtures import DescriptorRegistry
+from scripts.validate_fixtures import build_descriptor_set
+from scripts.validate_fixtures import load_json
 from scripts.validate_fixtures import normalize_scan_records
 from scripts.validate_fixtures import require
 from scripts.validate_fixtures import validate_compatibility
 from scripts.validate_fixtures import validate_proto_version_payload
 from scripts.validate_fixtures import validate_qr_payload
 from scripts.validate_fixtures import validate_stress_session_payload
+
+from scripts.validate_device_link import validate_link_advertising
+from scripts.validate_device_link import validate_link_limits
+from scripts.validate_device_link import validate_link_public_state
 
 
 VALID_QR = {
@@ -167,6 +175,55 @@ combinations:
             with self.assertRaisesRegex(ContractValidationError,
                                         "verified commits must be full SHAs"):
                 validate_compatibility(root, "0.1.1")
+
+    def test_link_advertising_rejects_oversize_mutation(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        fixture = load_json(root, "fixtures/discovery/advertising-v1.json")
+        fixture["max_payload_bytes"] = 29
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "fixtures" / "discovery"
+            target.mkdir(parents=True)
+            (target / "advertising-v1.json").write_text(
+                json.dumps(fixture), encoding="utf-8")
+            profiles = Path(directory) / "profiles"
+            profiles.mkdir()
+            (profiles / "device-link-v1.yaml").write_text(
+                (root / "profiles" / "device-link-v1.yaml").read_text(
+                    encoding="utf-8"),
+                encoding="utf-8")
+            with self.assertRaisesRegex(ContractValidationError,
+                                        "advertising payload limit mismatch"):
+                validate_link_advertising(Path(directory))
+
+    def test_link_limits_rejects_timeout_mutation(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        fixture = load_json(root, "fixtures/link-limits-v1.json")
+        fixture["reassembly_idle_timeout_ms"] = 5001
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "fixtures"
+            target.mkdir(parents=True)
+            (target / "link-limits-v1.json").write_text(
+                json.dumps(fixture), encoding="utf-8")
+            with self.assertRaisesRegex(ContractValidationError,
+                                        "reassembly timeout mismatch"):
+                validate_link_limits(Path(directory))
+
+    def test_link_public_state_domain_assertions(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        registry = DescriptorRegistry(build_descriptor_set(root))
+        validate_link_public_state(root, registry)
+        limits = load_json(root, "fixtures/link-limits-v1.json")
+        message = registry.message_class(
+            "microtech.link.v1.PublicLinkState")()
+        message.protocol_major = limits["public_link_state_max_version"] + 1
+        message.boot_id = 1
+        from scripts.validate_device_link import _public_state_domain_valid
+        self.assertFalse(_public_state_domain_valid(
+            message, limits["public_link_state_max_version"]))
+        message.protocol_major = 1
+        message.boot_id = 0
+        self.assertFalse(_public_state_domain_valid(
+            message, limits["public_link_state_max_version"]))
 
 
 if __name__ == "__main__":

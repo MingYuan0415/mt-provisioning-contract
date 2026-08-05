@@ -5,6 +5,20 @@ Changelog and versions follow Semantic Versioning while the contract matures.
 
 ## [Unreleased]
 
+### Added
+
+- Added the draft Device Link v1 protobuf package and static GATT profile.
+- Defined device-focused framing, Secure Connections binding, application
+  authorization, recovery, and lifecycle requirements.
+- Defined the public `PublicLinkState` wire for unauthenticated `link_state`
+  reads and notifications, bounded to 20 encoded bytes.
+- Defined the advertising and discovery contract: Flags, 128-bit Service Data
+  with advertising version, bindable flag, and a fresh per-window 24-bit
+  discriminator, plus the `MT` short name.
+- Frozen reassembly idle (5000 ms) and indication confirmation (2000 ms)
+  timeouts, duplicate request-ID rejection, boot-scoped event sequences
+  without wrap, and atomic snapshot generation.
+
 ## [0.1.2] - 2026-08-04
 
 ### Added
