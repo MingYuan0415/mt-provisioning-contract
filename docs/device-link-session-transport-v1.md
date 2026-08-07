@@ -73,9 +73,10 @@ session and control channels. The session has two distinct states:
 
 - Enters `HANDSHAKING` on the first accepted handshake command of the
   generation.
-- Enters `AUTHENTICATED` only when the handshake proof verifies; a failed
-  proof rejects the handshake and the session stays `HANDSHAKING` (or
-  closes on repeated failure).
+- Enters `AUTHENTICATED` only when the handshake proof verifies. A failed
+  proof rejects the handshake: the session instance does not exist and the
+  session is `CLOSED`. The client may start a fresh handshake; repeated
+  failures must not accumulate session state.
 - Closes on: disconnect, connection-generation change, reassembly idle
   (5000 ms), indication confirmation timeout (2000 ms), malformed handshake,
   malformed ciphertext, failed authentication (wrong credential), boot id

@@ -810,38 +810,52 @@ def _require_session_transport_domain(expected: dict) -> None:
     if frame_type == 0:
         require(expected.get("stage") == "HANDSHAKE",
                 f"handshake case must be HANDSHAKE stage: {case_id}")
-        require(expected.get("sec_version") == 2,
-                f"handshake case must carry sec_ver 2: {case_id}")
+        require(type(expected.get("sec_version")) is int,
+                f"handshake case must carry sec_ver: {case_id}")
         proof = expected.get("proof_result")
         require(proof in {"OK", "FAILED", None},
                 f"invalid proof result in {case_id}")
-        if proof == "OK":
-            require(result == "ACCEPTED" or result == "NOT_ADMITTED",
-                    f"accepted proof must not be rejected: {case_id}")
-            if result == "ACCEPTED":
-                require(session_after == "AUTHENTICATED",
-                        f"verified proof must authenticate: {case_id}")
-        else:
+        if proof == "FAILED":
             require(result == "REJECTED",
                     f"failed proof must reject: {case_id}")
             require(session_after == "CLOSED",
                     f"failed proof must close: {case_id}")
+        if result == "ACCEPTED":
+            require(proof == "OK",
+                    f"accepted handshake needs a verified proof: {case_id}")
+            require(expected.get("sec_version") == 2,
+                    f"accepted handshake needs sec_ver 2: {case_id}")
+            require(session_after == "AUTHENTICATED",
+                    f"verified proof must authenticate: {case_id}")
+        if result == "NOT_ADMITTED":
+            require(expected.get("binding_state") == "none",
+                    f"non-admission only without a verifier: {case_id}")
+        if result == "REJECTED" and proof is None:
+            require(session_after == "CLOSED",
+                    f"rejected handshake must close: {case_id}")
         require("ciphertext_len" not in expected,
                 f"handshake case must not carry ciphertext: {case_id}")
-        if expected.get("binding_state") == "window":
-            require(expected.get("verifier") == "QR_POP",
-                    f"window bootstrap must use QR_POP: {case_id}")
-        elif expected.get("binding_state") in {"bound", "window_bound"}:
-            require(expected.get("verifier") == "LONG_TERM",
-                    f"bound peer must use LONG_TERM verifier: {case_id}")
+        if "verifier" in expected:
+            if expected.get("binding_state") == "window":
+                require(expected.get("verifier") == "QR_POP",
+                        f"window bootstrap must use QR_POP: {case_id}")
+            elif expected.get("binding_state") in {"bound", "window_bound"}:
+                require(expected.get("verifier") == "LONG_TERM",
+                        f"bound peer must use LONG_TERM verifier: {case_id}")
+            else:
+                require(False,
+                        f"verifier needs a binding state: {case_id}")
     elif frame_type == 1:
         require(expected.get("stage") == "AUTHENTICATED",
                 f"protected case must be AUTHENTICATED stage: {case_id}")
         ciphertext_len = expected.get("ciphertext_len")
-        require(type(ciphertext_len) is int and ciphertext_len > 16,
-                f"protected ciphertext must exceed the tag: {case_id}")
+        require(type(ciphertext_len) is int,
+                f"protected case must carry ciphertext length: {case_id}")
         require(type(expected.get("counter_valid")) is bool,
                 f"counter validity required: {case_id}")
+        if result == "ACCEPTED":
+            require(ciphertext_len > 16,
+                    f"accepted ciphertext must exceed the tag: {case_id}")
         if expected.get("authorization") == "UNAUTHORIZED":
             require(result == "REJECTED",
                     f"unauthorized control must reject: {case_id}")
@@ -873,20 +887,6 @@ def validate_link_session_transport(root: Path) -> None:
             {"id": case_id, **expected})
 
 
-def validate_link_session_transport(root: Path) -> None:
-    semantic = load_json(root, LINK_SESSION_TRANSPORT)
-    require_exact_type(semantic, list, "session transport semantic fixture")
-    ids = [case.get("id") for case in semantic if type(case) is dict]
-    require(len(ids) == len(semantic),
-            "every session transport case needs an id")
-    require(len(set(ids)) == len(ids),
-            "duplicate session transport case id")
-    require(set(ids) == set(SESSION_TRANSPORT_SEMANTICS),
-            "session transport semantic coverage mismatch")
-    cases = {case["id"]: case for case in semantic}
-    for case_id, expected in SESSION_TRANSPORT_SEMANTICS.items():
-        require(cases[case_id] == {"id": case_id, **expected},
-                f"session transport semantic mismatch: {case_id}")
 def validate_link_limits(root: Path) -> None:
     limits = load_json(root, LINK_LIMITS)
     require_exact_type(limits, dict, "link limits fixture")
