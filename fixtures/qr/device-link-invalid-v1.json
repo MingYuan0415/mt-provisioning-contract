@@ -8,6 +8,8 @@
   {"id": "padded-pop", "replace": {"pop": "AAECAwQFBgcICQoLDA0ODw=="}},
   {"id": "short-pop", "replace": {"pop": "AAECAwQFBgcICQoLDA0OD"}},
   {"id": "invalid-pop-character", "replace": {"pop": "AAECAwQFBgcICQoLDA0OD!"}},
+  {"id": "zero-pop", "replace": {"pop": "AAAAAAAAAAAAAAAAAAAAAA"}},
+  {"id": "non-canonical-pop", "replace": {"pop": "AAECAwQFBgcICQoLDA0ODx"}},
   {"id": "wrong-ver", "replace": {"ver": "v1"}},
   {"id": "wrong-service", "replace": {"service": "d8f1c836-b47e-409f-8c21-73979e390e6b"}},
   {"id": "wrong-name", "replace": {"name": "MT-A1B2C3"}},

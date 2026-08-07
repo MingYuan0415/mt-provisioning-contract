@@ -27,6 +27,7 @@
     {"id": "unknown-flag-bit", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0102efcdab03084d54"},
     {"id": "wrong-uuid", "hex": "0201061621a34e8557113d8aa2594ebbb49231203f0101efcdab03084d54"},
     {"id": "wrong-ad-type", "hex": "0201061622a34e8557113d8aa2594ebbb49231203e0101efcdab03084d54"},
-    {"id": "non-bindable-discriminator", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0100efcdab03084d54"}
+    {"id": "non-bindable-discriminator", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e0100efcdab03084d54"},
+    {"id": "bindable-zero-discriminator", "hex": "0201061621a34e8557113d8aa2594ebbb49231203e010100000003084d54"}
   ]
 }

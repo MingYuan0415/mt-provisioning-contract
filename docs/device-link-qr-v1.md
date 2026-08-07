@@ -17,7 +17,7 @@ possession used by the bootstrap Security 2 handshake.
 | `name` | string | exactly `MT` (display only, matches the advertised short name) |
 | `service` | string | the Device Link service UUID from `profiles/device-link-v1.yaml` |
 | `discriminator` | string | exactly 4 unpadded Base64URL characters decoding to 3 bytes, little-endian wire order, nonzero; must equal the `discriminator` of the concurrently advertised Service Data |
-| `pop` | string | exactly 22 unpadded Base64URL characters decoding to 16 bytes; fresh per binding window |
+| `pop` | string | exactly 22 unpadded Base64URL characters decoding to 16 nonzero bytes; fresh per binding window |
 | `expires_in_ms` | number | positive integer at most 3600000; informational only, the device window is authoritative |
 
 The root value is an object. All fields are required, field types are exact,

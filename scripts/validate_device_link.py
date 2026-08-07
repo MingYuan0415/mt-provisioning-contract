@@ -527,6 +527,9 @@ def validate_link_advertising(root: Path) -> None:
         if not case["bindable"]:
             require(discriminator == 0,
                     f"bound state must not carry a discriminator: {case.get('id')}")
+        else:
+            require(discriminator != 0,
+                    f"bindable state must carry a nonzero discriminator: {case.get('id')}")
         tail = payload[5 + service_data_len - 1:]
         require(tail == bytes.fromhex("03084d54"),
                 f"short name AD mismatch in {case.get('id')}")
@@ -558,9 +561,34 @@ def validate_link_advertising(root: Path) -> None:
             elif service_data[17] == 0 and \
                     int.from_bytes(service_data[18:21], byteorder="little") != 0:
                 rejected = True
+            elif service_data[17] == 1 and \
+                    int.from_bytes(service_data[18:21], byteorder="little") == 0:
+                rejected = True
             elif payload[5 + payload[3] - 1:] != bytes.fromhex("03084d54"):
                 rejected = True
         require(rejected, f"invalid advertising payload passed: {case.get('id')}")
+
+
+def _base64url_encode(data: bytes) -> str:
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    output: list[str] = []
+    for index in range(0, len(data) - 2, 3):
+        value = (data[index] << 16) | (data[index + 1] << 8) | data[index + 2]
+        output.append(alphabet[(value >> 18) & 0x3f])
+        output.append(alphabet[(value >> 12) & 0x3f])
+        output.append(alphabet[(value >> 6) & 0x3f])
+        output.append(alphabet[value & 0x3f])
+    remainder = len(data) % 3
+    if remainder == 1:
+        value = data[-1] << 16
+        output.append(alphabet[(value >> 18) & 0x3f])
+        output.append(alphabet[(value >> 12) & 0x3f])
+    elif remainder == 2:
+        value = (data[-2] << 16) | (data[-1] << 8)
+        output.append(alphabet[(value >> 18) & 0x3f])
+        output.append(alphabet[(value >> 12) & 0x3f])
+        output.append(alphabet[(value >> 6) & 0x3f])
+    return "".join(output)
 
 
 def _decode_base64url(value: Any, expected_bytes: int, name: str) -> bytes:
@@ -579,6 +607,8 @@ def _decode_base64url(value: Any, expected_bytes: int, name: str) -> bytes:
             f"{name} is not strict Base64URL") from error
     require(len(decoded) == expected_bytes,
             f"{name} must decode to {expected_bytes} bytes")
+    require(_base64url_encode(decoded) == value,
+            f"{name} is not canonical Base64URL")
     return decoded
 
 
@@ -645,168 +675,184 @@ def validate_link_qr(root: Path) -> None:
 
 SESSION_TRANSPORT_SEMANTICS = {
     "handshake-before-ciphertext": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "window",
-        "result": "ACCEPTED",
-        "session_after": "OPEN",
-        "response_channel": "session_tx",
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "window", "stage": "HANDSHAKE", "sec_version": 2,
+        "proof_result": "OK", "result": "ACCEPTED",
+        "session_after": "AUTHENTICATED", "response_channel": "session_tx",
         "response_type": 0,
     },
     "ciphertext-before-handshake": {
-        "channel": "session",
-        "type": 1,
-        "session_state": "none",
-        "binding_state": "window",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
-        "response_type": None,
+        "channel": "session", "type": 1, "session_state": "none",
+        "binding_state": "window", "stage": "AUTHENTICATED",
+        "ciphertext_len": 32, "counter_valid": True,
+        "result": "REJECTED", "session_after": "CLOSED",
+        "response_channel": None, "response_type": None,
     },
     "handshake-on-control": {
-        "channel": "control",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "bound",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
+        "channel": "control", "type": 0, "session_state": "none",
+        "binding_state": "bound", "stage": "HANDSHAKE", "sec_version": 2,
+        "proof_result": "OK", "result": "REJECTED",
+        "session_after": "CLOSED", "response_channel": None,
         "response_type": None,
     },
     "protected-on-control": {
-        "channel": "control",
-        "type": 1,
-        "session_state": "open",
-        "binding_state": "bound",
-        "result": "ACCEPTED",
-        "session_after": "OPEN",
-        "response_channel": "control_tx",
+        "channel": "control", "type": 1, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True,
+        "authorization": "AUTHORIZED", "result": "ACCEPTED",
+        "session_after": "AUTHENTICATED", "response_channel": "control_tx",
         "response_type": 1,
     },
     "protected-on-control-unauthenticated": {
-        "channel": "control",
-        "type": 1,
-        "session_state": "open",
-        "binding_state": "bound",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
+        "channel": "control", "type": 1, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True,
+        "authorization": "UNAUTHORIZED", "result": "REJECTED",
+        "session_after": "CLOSED", "response_channel": None,
         "response_type": None,
     },
     "unknown-type": {
-        "channel": "session",
-        "type": 2,
-        "session_state": "none",
-        "binding_state": "window",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
+        "channel": "session", "type": 2, "session_state": "none",
+        "binding_state": "window", "result": "REJECTED",
+        "session_after": "CLOSED", "response_channel": None,
         "response_type": None,
     },
     "re-handshake-replaces": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "open",
-        "binding_state": "bound",
-        "result": "ACCEPTED",
-        "session_after": "REPLACED",
-        "response_channel": "session_tx",
-        "response_type": 0,
+        "channel": "session", "type": 0, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "HANDSHAKE", "sec_version": 2,
+        "proof_result": "OK", "replaces_transaction": True,
+        "result": "ACCEPTED", "session_after": "AUTHENTICATED",
+        "response_channel": "session_tx", "response_type": 0,
     },
     "malformed-handshake": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "window",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
-        "response_type": None,
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "window", "stage": "HANDSHAKE", "sec_version": 2,
+        "malformed": True, "result": "REJECTED", "session_after": "CLOSED",
+        "response_channel": None, "response_type": None,
     },
     "wrong-sec-version": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "window",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
-        "response_type": None,
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "window", "stage": "HANDSHAKE", "sec_version": 1,
+        "result": "REJECTED", "session_after": "CLOSED",
+        "response_channel": None, "response_type": None,
     },
     "short-ciphertext": {
-        "channel": "session",
-        "type": 1,
-        "session_state": "open",
-        "binding_state": "bound",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
-        "response_type": None,
+        "channel": "session", "type": 1, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "AUTHENTICATED",
+        "ciphertext_len": 8, "counter_valid": True,
+        "result": "REJECTED", "session_after": "CLOSED",
+        "response_channel": None, "response_type": None,
     },
     "failed-tag-closes": {
-        "channel": "session",
-        "type": 1,
-        "session_state": "open",
-        "binding_state": "bound",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
-        "response_type": None,
+        "channel": "session", "type": 1, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True, "tag_valid": False,
+        "result": "REJECTED", "session_after": "CLOSED",
+        "response_channel": None, "response_type": None,
     },
     "wrong-credential-rejected": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "bound",
-        "result": "REJECTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "bound", "stage": "HANDSHAKE", "sec_version": 2,
+        "proof_result": "FAILED", "result": "REJECTED",
+        "session_after": "CLOSED", "response_channel": None,
         "response_type": None,
     },
     "window-closed-no-verifier": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "none",
-        "result": "NOT_ADMITTED",
-        "session_after": "CLOSED",
-        "response_channel": None,
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "none", "stage": "HANDSHAKE", "sec_version": 2,
+        "proof_result": "OK", "result": "NOT_ADMITTED",
+        "session_after": "CLOSED", "response_channel": None,
         "response_type": None,
     },
     "bootstrap-verifier": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "window",
-        "verifier": "QR_POP",
-        "result": "ACCEPTED",
-        "session_after": "OPEN",
-        "response_channel": "session_tx",
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "window", "stage": "HANDSHAKE", "sec_version": 2,
+        "verifier": "QR_POP", "proof_result": "OK", "result": "ACCEPTED",
+        "session_after": "AUTHENTICATED", "response_channel": "session_tx",
         "response_type": 0,
     },
     "bound-verifier": {
-        "channel": "session",
-        "type": 0,
-        "session_state": "none",
-        "binding_state": "bound",
-        "verifier": "LONG_TERM",
-        "result": "ACCEPTED",
-        "session_after": "OPEN",
-        "response_channel": "session_tx",
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "bound", "stage": "HANDSHAKE", "sec_version": 2,
+        "verifier": "LONG_TERM", "proof_result": "OK", "result": "ACCEPTED",
+        "session_after": "AUTHENTICATED", "response_channel": "session_tx",
         "response_type": 0,
     },
+    "replacement-window-bound-peer": {
+        "channel": "session", "type": 0, "session_state": "none",
+        "binding_state": "window_bound", "stage": "HANDSHAKE",
+        "sec_version": 2, "verifier": "LONG_TERM", "proof_result": "OK",
+        "result": "ACCEPTED", "session_after": "AUTHENTICATED",
+        "response_channel": "session_tx", "response_type": 0,
+    },
     "protected-response-routing": {
-        "channel": "session",
-        "type": 1,
-        "session_state": "open",
-        "binding_state": "bound",
-        "result": "ACCEPTED",
-        "session_after": "OPEN",
-        "response_channel": "session_tx",
-        "response_type": 1,
+        "channel": "session", "type": 1, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True,
+        "result": "ACCEPTED", "session_after": "AUTHENTICATED",
+        "response_channel": "session_tx", "response_type": 1,
     },
 }
+
+
+def _require_session_transport_domain(expected: dict) -> None:
+    """Value-domain checks beyond fixture equality."""
+    case_id = expected["id"]
+    channel = expected["channel"]
+    frame_type = expected["type"]
+    result = expected["result"]
+    session_after = expected["session_after"]
+    require(frame_type in {0, 1, 2}, f"invalid transport type in {case_id}")
+    require(channel in {"session", "control"},
+            f"invalid transport channel in {case_id}")
+    require(session_after in {"HANDSHAKING", "AUTHENTICATED", "CLOSED"},
+            f"invalid session outcome in {case_id}")
+    if frame_type == 0:
+        require(expected.get("stage") == "HANDSHAKE",
+                f"handshake case must be HANDSHAKE stage: {case_id}")
+        require(expected.get("sec_version") == 2,
+                f"handshake case must carry sec_ver 2: {case_id}")
+        proof = expected.get("proof_result")
+        require(proof in {"OK", "FAILED", None},
+                f"invalid proof result in {case_id}")
+        if proof == "OK":
+            require(result == "ACCEPTED" or result == "NOT_ADMITTED",
+                    f"accepted proof must not be rejected: {case_id}")
+            if result == "ACCEPTED":
+                require(session_after == "AUTHENTICATED",
+                        f"verified proof must authenticate: {case_id}")
+        else:
+            require(result == "REJECTED",
+                    f"failed proof must reject: {case_id}")
+            require(session_after == "CLOSED",
+                    f"failed proof must close: {case_id}")
+        require("ciphertext_len" not in expected,
+                f"handshake case must not carry ciphertext: {case_id}")
+        if expected.get("binding_state") == "window":
+            require(expected.get("verifier") == "QR_POP",
+                    f"window bootstrap must use QR_POP: {case_id}")
+        elif expected.get("binding_state") in {"bound", "window_bound"}:
+            require(expected.get("verifier") == "LONG_TERM",
+                    f"bound peer must use LONG_TERM verifier: {case_id}")
+    elif frame_type == 1:
+        require(expected.get("stage") == "AUTHENTICATED",
+                f"protected case must be AUTHENTICATED stage: {case_id}")
+        ciphertext_len = expected.get("ciphertext_len")
+        require(type(ciphertext_len) is int and ciphertext_len > 16,
+                f"protected ciphertext must exceed the tag: {case_id}")
+        require(type(expected.get("counter_valid")) is bool,
+                f"counter validity required: {case_id}")
+        if expected.get("authorization") == "UNAUTHORIZED":
+            require(result == "REJECTED",
+                    f"unauthorized control must reject: {case_id}")
+        if result == "ACCEPTED":
+            require(session_after == "AUTHENTICATED",
+                    f"accepted protected message keeps session: {case_id}")
+    else:
+        require(result == "REJECTED",
+                f"unknown type must reject: {case_id}")
+        require(session_after == "CLOSED",
+                f"unknown type must close: {case_id}")
 
 
 def validate_link_session_transport(root: Path) -> None:
@@ -823,16 +869,24 @@ def validate_link_session_transport(root: Path) -> None:
     for case_id, expected in SESSION_TRANSPORT_SEMANTICS.items():
         require(cases[case_id] == {"id": case_id, **expected},
                 f"session transport semantic mismatch: {case_id}")
+        _require_session_transport_domain(
+            {"id": case_id, **expected})
+
+
+def validate_link_session_transport(root: Path) -> None:
+    semantic = load_json(root, LINK_SESSION_TRANSPORT)
+    require_exact_type(semantic, list, "session transport semantic fixture")
+    ids = [case.get("id") for case in semantic if type(case) is dict]
+    require(len(ids) == len(semantic),
+            "every session transport case needs an id")
+    require(len(set(ids)) == len(ids),
+            "duplicate session transport case id")
+    require(set(ids) == set(SESSION_TRANSPORT_SEMANTICS),
+            "session transport semantic coverage mismatch")
+    cases = {case["id"]: case for case in semantic}
     for case_id, expected in SESSION_TRANSPORT_SEMANTICS.items():
-        require(expected["type"] in {0, 1, 2},
-                f"invalid transport type in {case_id}")
-        require(expected["channel"] in {"session", "control"},
-                f"invalid transport channel in {case_id}")
-        require(expected["session_after"] in
-                {"OPEN", "CLOSED", "REPLACED"},
-                f"invalid session outcome in {case_id}")
-
-
+        require(cases[case_id] == {"id": case_id, **expected},
+                f"session transport semantic mismatch: {case_id}")
 def validate_link_limits(root: Path) -> None:
     limits = load_json(root, LINK_LIMITS)
     require_exact_type(limits, dict, "link limits fixture")
