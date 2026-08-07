@@ -12,5 +12,19 @@
     "service_data_ad_type": 33,
     "service_uuid_bytes": 16,
     "discriminator_bytes": 3
+  },
+  "session_transport": {
+    "type_bytes": 1,
+    "handshake_type": 0,
+    "encrypted_type": 1
+  },
+  "qr": {
+    "version": "link-v1",
+    "short_name": "MT",
+    "pop_bytes": 16,
+    "pop_chars": 22,
+    "discriminator_bytes": 3,
+    "discriminator_chars": 4,
+    "expires_in_ms_max": 3600000
   }
 }

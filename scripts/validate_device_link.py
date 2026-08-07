@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import re
 import struct
 import sys
@@ -25,10 +27,18 @@ LINK_PROFILE = "profiles/device-link-v1.yaml"
 LINK_PROFILE_CONSISTENCY = "fixtures/profile/device-link-consistency-v1.json"
 LINK_FRAMING = "fixtures/framing/framing-v1.json"
 LINK_SECURITY = "fixtures/semantic/device-link-security-v1.json"
+LINK_SESSION_TRANSPORT = "fixtures/semantic/device-link-session-transport-v1.json"
 LINK_GOLDEN = "fixtures/protobuf/link-golden-v1.json"
 LINK_INVALID = "fixtures/protobuf/link-invalid-v1.json"
 LINK_ADVERTISING = "fixtures/discovery/advertising-v1.json"
 LINK_LIMITS = "fixtures/link-limits-v1.json"
+LINK_QR_VALID = "fixtures/qr/device-link-valid-v1.json"
+LINK_QR_INVALID = "fixtures/qr/device-link-invalid-v1.json"
+
+LINK_QR_FIELDS = {"ver", "name", "service", "discriminator", "pop",
+                  "expires_in_ms"}
+LINK_QR_VERSION = "link-v1"
+LINK_QR_SHORT_NAME = "MT"
 
 FRAMING_VERSION = 1
 HEADER_BYTES = 8
@@ -179,6 +189,27 @@ def validate_link_profile(root: Path) -> None:
     require(framing.get("byte_order") == "little",
             "framing byte order must be little")
 
+    session_transport = profile.get("session_transport")
+    require_exact_type(session_transport, dict, "profile session_transport")
+    require(session_transport.get("type_bytes") == 1,
+            "session transport type size must be 1")
+    require(session_transport.get("handshake_type") == 0,
+            "session transport handshake type must be 0")
+    require(session_transport.get("encrypted_type") == 1,
+            "session transport encrypted type must be 1")
+
+    qr = profile.get("qr")
+    require_exact_type(qr, dict, "profile qr")
+    require(qr.get("version") == LINK_QR_VERSION,
+            "profile QR version mismatch")
+    require(qr.get("short_name") == LINK_QR_SHORT_NAME,
+            "profile QR short name mismatch")
+    require(qr.get("pop_bytes") == 16, "profile QR pop must be 16 bytes")
+    require(qr.get("discriminator_bytes") == 3,
+            "profile QR discriminator must be 3 bytes")
+    require(qr.get("expires_in_ms_max") == 3600000,
+            "profile QR expiry bound mismatch")
+
     security = profile.get("security")
     require_exact_type(security, dict, "profile security")
     require(security.get("le_secure_connections_only") is True,
@@ -246,6 +277,10 @@ def validate_link_profile(root: Path) -> None:
             "profile consistency timeouts mismatch")
     require(consistency.get("advertising") == profile.get("advertising"),
             "profile consistency advertising mismatch")
+    require(consistency.get("session_transport") == session_transport,
+            "profile consistency session_transport mismatch")
+    require(consistency.get("qr") == qr,
+            "profile consistency qr mismatch")
 
 
 def parse_fragment(value: bytes) -> tuple[int, int, int, int, int, bytes]:
@@ -528,6 +563,276 @@ def validate_link_advertising(root: Path) -> None:
         require(rejected, f"invalid advertising payload passed: {case.get('id')}")
 
 
+def _decode_base64url(value: Any, expected_bytes: int, name: str) -> bytes:
+    require_exact_type(value, str, name)
+    require(re.fullmatch(r"[A-Za-z0-9_-]+", value) is not None,
+            f"{name} is not strict Base64URL")
+    require(len(value) % 4 != 1, f"{name} has invalid Base64URL length")
+    try:
+        decoded = base64.b64decode(
+            value + "=" * (-len(value) % 4),
+            altchars=b"-_",
+            validate=True,
+        )
+    except (binascii.Error, ValueError) as error:
+        raise ContractValidationError(
+            f"{name} is not strict Base64URL") from error
+    require(len(decoded) == expected_bytes,
+            f"{name} must decode to {expected_bytes} bytes")
+    return decoded
+
+
+def validate_link_qr_payload(qr: Any) -> bytes:
+    require_exact_type(qr, dict, "Device Link QR root")
+    require(LINK_QR_FIELDS <= qr.keys(), "Device Link QR is missing a field")
+    require(qr["ver"] == LINK_QR_VERSION,
+            "Device Link QR version must be link-v1")
+    require(qr["name"] == LINK_QR_SHORT_NAME,
+            "Device Link QR name must be MT")
+    service = qr["service"]
+    profile = load_yaml(Path(__file__).resolve().parents[1], LINK_PROFILE)
+    profile_uuid = profile["services"][0]["uuid"]
+    require(service == profile_uuid,
+            "Device Link QR service UUID mismatch with profile")
+    require_exact_type(qr["expires_in_ms"], int,
+                       "Device Link QR expires_in_ms")
+    require(0 < qr["expires_in_ms"] <= 3600000,
+            "Device Link QR expires_in_ms out of range")
+    discriminator = _decode_base64url(
+        qr["discriminator"], 3, "Device Link QR discriminator")
+    require(discriminator != b"\x00\x00\x00",
+            "Device Link QR discriminator must be nonzero")
+    pop = _decode_base64url(qr["pop"], 16, "Device Link QR pop")
+    require(pop != b"\x00" * 16, "Device Link QR pop must be nonzero")
+    return discriminator
+
+
+def validate_link_qr(root: Path) -> None:
+    base = load_json(root, LINK_QR_VALID)
+    discriminator = validate_link_qr_payload(base)
+    with_unknown = dict(base)
+    with_unknown["future"] = {"ignored": True}
+    validate_link_qr_payload(with_unknown)
+
+    advertising = load_json(root, LINK_ADVERTISING)
+    window_case = next(
+        (case for case in advertising["valid_payloads"]
+         if case["bindable"]), None)
+    require(window_case is not None,
+            "advertising fixture needs a bindable payload")
+    require(int.from_bytes(discriminator, byteorder="little") ==
+            window_case["discriminator"],
+            "QR discriminator does not match the advertising fixture")
+
+    invalid = load_json(root, LINK_QR_INVALID)
+    require_exact_type(invalid, list, "invalid Device Link QR fixture")
+    ids = [case.get("id") for case in invalid if type(case) is dict]
+    require(len(ids) == len(invalid), "every invalid Device Link QR needs an id")
+    require(len(set(ids)) == len(ids),
+            "duplicate invalid Device Link QR id")
+    for case in invalid:
+        candidate = dict(base)
+        for field in case.get("remove", []):
+            candidate.pop(field, None)
+        candidate.update(case.get("replace", {}))
+        try:
+            validate_link_qr_payload(candidate)
+        except ContractValidationError:
+            continue
+        raise ContractValidationError(
+            f"invalid Device Link QR passed: {case.get('id')}")
+
+
+SESSION_TRANSPORT_SEMANTICS = {
+    "handshake-before-ciphertext": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "window",
+        "result": "ACCEPTED",
+        "session_after": "OPEN",
+        "response_channel": "session_tx",
+        "response_type": 0,
+    },
+    "ciphertext-before-handshake": {
+        "channel": "session",
+        "type": 1,
+        "session_state": "none",
+        "binding_state": "window",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "handshake-on-control": {
+        "channel": "control",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "bound",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "protected-on-control": {
+        "channel": "control",
+        "type": 1,
+        "session_state": "open",
+        "binding_state": "bound",
+        "result": "ACCEPTED",
+        "session_after": "OPEN",
+        "response_channel": "control_tx",
+        "response_type": 1,
+    },
+    "protected-on-control-unauthenticated": {
+        "channel": "control",
+        "type": 1,
+        "session_state": "open",
+        "binding_state": "bound",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "unknown-type": {
+        "channel": "session",
+        "type": 2,
+        "session_state": "none",
+        "binding_state": "window",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "re-handshake-replaces": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "open",
+        "binding_state": "bound",
+        "result": "ACCEPTED",
+        "session_after": "REPLACED",
+        "response_channel": "session_tx",
+        "response_type": 0,
+    },
+    "malformed-handshake": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "window",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "wrong-sec-version": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "window",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "short-ciphertext": {
+        "channel": "session",
+        "type": 1,
+        "session_state": "open",
+        "binding_state": "bound",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "failed-tag-closes": {
+        "channel": "session",
+        "type": 1,
+        "session_state": "open",
+        "binding_state": "bound",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "wrong-credential-rejected": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "bound",
+        "result": "REJECTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "window-closed-no-verifier": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "none",
+        "result": "NOT_ADMITTED",
+        "session_after": "CLOSED",
+        "response_channel": None,
+        "response_type": None,
+    },
+    "bootstrap-verifier": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "window",
+        "verifier": "QR_POP",
+        "result": "ACCEPTED",
+        "session_after": "OPEN",
+        "response_channel": "session_tx",
+        "response_type": 0,
+    },
+    "bound-verifier": {
+        "channel": "session",
+        "type": 0,
+        "session_state": "none",
+        "binding_state": "bound",
+        "verifier": "LONG_TERM",
+        "result": "ACCEPTED",
+        "session_after": "OPEN",
+        "response_channel": "session_tx",
+        "response_type": 0,
+    },
+    "protected-response-routing": {
+        "channel": "session",
+        "type": 1,
+        "session_state": "open",
+        "binding_state": "bound",
+        "result": "ACCEPTED",
+        "session_after": "OPEN",
+        "response_channel": "session_tx",
+        "response_type": 1,
+    },
+}
+
+
+def validate_link_session_transport(root: Path) -> None:
+    semantic = load_json(root, LINK_SESSION_TRANSPORT)
+    require_exact_type(semantic, list, "session transport semantic fixture")
+    ids = [case.get("id") for case in semantic if type(case) is dict]
+    require(len(ids) == len(semantic),
+            "every session transport case needs an id")
+    require(len(set(ids)) == len(ids),
+            "duplicate session transport case id")
+    require(set(ids) == set(SESSION_TRANSPORT_SEMANTICS),
+            "session transport semantic coverage mismatch")
+    cases = {case["id"]: case for case in semantic}
+    for case_id, expected in SESSION_TRANSPORT_SEMANTICS.items():
+        require(cases[case_id] == {"id": case_id, **expected},
+                f"session transport semantic mismatch: {case_id}")
+    for case_id, expected in SESSION_TRANSPORT_SEMANTICS.items():
+        require(expected["type"] in {0, 1, 2},
+                f"invalid transport type in {case_id}")
+        require(expected["channel"] in {"session", "control"},
+                f"invalid transport channel in {case_id}")
+        require(expected["session_after"] in
+                {"OPEN", "CLOSED", "REPLACED"},
+                f"invalid session outcome in {case_id}")
+
+
 def validate_link_limits(root: Path) -> None:
     limits = load_json(root, LINK_LIMITS)
     require_exact_type(limits, dict, "link limits fixture")
@@ -573,6 +878,39 @@ def validate_link_limits(root: Path) -> None:
         "service_uuid_bytes": 16,
         "discriminator_bytes": 3,
     }, "link limits advertising mismatch")
+    require(limits.get("session_transport") == {
+        "type_bytes": 1,
+        "handshake_type": 0,
+        "encrypted_type": 1,
+    }, "link limits session_transport mismatch")
+    require(limits.get("qr") == {
+        "version": "link-v1",
+        "short_name": "MT",
+        "pop_bytes": 16,
+        "pop_chars": 22,
+        "discriminator_bytes": 3,
+        "discriminator_chars": 4,
+        "expires_in_ms_max": 3600000,
+    }, "link limits qr mismatch")
+    session_transport = profile.get("session_transport")
+    qr_profile = profile.get("qr")
+    require(limits["session_transport"]["type_bytes"] ==
+            session_transport["type_bytes"],
+            "session_transport type size mismatch with profile")
+    require(limits["session_transport"]["handshake_type"] ==
+            session_transport["handshake_type"],
+            "session_transport handshake type mismatch with profile")
+    require(limits["session_transport"]["encrypted_type"] ==
+            session_transport["encrypted_type"],
+            "session_transport encrypted type mismatch with profile")
+    require(limits["qr"]["pop_bytes"] == qr_profile["pop_bytes"],
+            "QR pop size mismatch with profile")
+    require(limits["qr"]["discriminator_bytes"] ==
+            qr_profile["discriminator_bytes"],
+            "QR discriminator size mismatch with profile")
+    require(limits["qr"]["expires_in_ms_max"] ==
+            qr_profile["expires_in_ms_max"],
+            "QR expiry bound mismatch with profile")
     link_state = profile["services"][0]["characteristics"][0]
     require(link_state.get("public_wire") == "PublicLinkState",
             "profile public wire mismatch")
@@ -651,7 +989,9 @@ def validate_device_link(root: Path, registry: DescriptorRegistry) -> None:
     validate_link_profile(root)
     validate_link_framing(root)
     validate_link_security_semantics(root)
+    validate_link_session_transport(root)
     validate_link_protobuf(root, registry)
     validate_link_advertising(root)
+    validate_link_qr(root)
     validate_link_limits(root)
     validate_link_public_state(root, registry)

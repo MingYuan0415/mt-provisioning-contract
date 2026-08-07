@@ -14,6 +14,18 @@
     "maximum_control_message_bytes": 4096,
     "maximum_session_message_bytes": 1024
   },
+  "session_transport": {
+    "type_bytes": 1,
+    "handshake_type": 0,
+    "encrypted_type": 1
+  },
+  "qr": {
+    "version": "link-v1",
+    "short_name": "MT",
+    "pop_bytes": 16,
+    "discriminator_bytes": 3,
+    "expires_in_ms_max": 3600000
+  },
   "security": {
     "le_secure_connections_only": true,
     "encryption_key_bytes": 16,

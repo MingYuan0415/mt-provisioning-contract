@@ -28,6 +28,32 @@ address bytes. It never stores a connection handle, over-the-air RPA, Android
 display address, IRK hash, device name, or advertising discriminator as the
 primary identity key.
 
+## Pairing window admission
+
+SMP pairing is a separate fact from the Security 2 session. The device admits
+SMP pairing of an unknown peer only while a local pairing window is open
+(`BINDABLE` set in the advertisement and in `PublicLinkState`).
+
+- Unknown peer, window closed: pairing is not admitted; the device does not
+  initiate or accept SMP security, and `BLE_GAP_EVENT_REPEAT_PAIRING`-style
+  requests are ignored. The connection may still read `link_state`.
+- Unknown peer, window open: pairing is admitted, Secure Connections only,
+  with a 16-byte key and one persistent bond (NVS). The freshly generated QR
+  discriminator and POP of that window are the discovery and possession
+  tokens for the flow.
+- Repeat pairing of the already-bonded peer: admitted only while a
+  replacement window is open, after the existing authorization record has
+  been invalidated. Outside a replacement window it is rejected.
+- Replacement ordering: invalidate the old authorization before deleting the
+  old bond, so a crash can leave the device unbound but never dual-authorized.
+- Orphan cleanup: a bond without an authorization record is deleted; an
+  authorization record without its bond is invalidated and requires a new
+  locally confirmed binding.
+
+The binding flow after SMP pairing is defined by the session transport
+(`docs/device-link-session-transport-v1.md`) and the QR
+(`docs/device-link-qr-v1.md`).
+
 ## Bootstrap and commit
 
 The QR contains a fresh 128-bit POP with a bounded lifetime. It is used only by

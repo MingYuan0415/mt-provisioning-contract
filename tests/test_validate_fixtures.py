@@ -17,6 +17,8 @@ from scripts.validate_fixtures import validate_stress_session_payload
 from scripts.validate_device_link import validate_link_advertising
 from scripts.validate_device_link import validate_link_limits
 from scripts.validate_device_link import validate_link_public_state
+from scripts.validate_device_link import validate_link_qr_payload
+from scripts.validate_device_link import validate_link_session_transport
 
 
 VALID_QR = {
@@ -28,6 +30,15 @@ VALID_QR = {
     "pop": "AAECAwQFBgcICQoLDA0ODw",
     "service": "d8f1c836-b47e-409f-8c21-73979e390e6b",
     "device_id": "A1B2C3",
+}
+
+VALID_LINK_QR = {
+    "ver": "link-v1",
+    "name": "MT",
+    "service": "3e203192-b4bb-4e59-a28a-3d1157854ea3",
+    "discriminator": "782r",
+    "pop": "AAECAwQFBgcICQoLDA0ODw",
+    "expires_in_ms": 600000,
 }
 
 
@@ -224,6 +235,59 @@ combinations:
         message.boot_id = 0
         self.assertFalse(_public_state_domain_valid(
             message, limits["public_link_state_max_version"]))
+
+    def test_link_qr_accepts_valid_and_unknown_fields(self) -> None:
+        discriminator = validate_link_qr_payload(VALID_LINK_QR)
+        self.assertEqual(int.from_bytes(discriminator, "little"), 11259375)
+        with_unknown = dict(VALID_LINK_QR)
+        with_unknown["future"] = {"ignored": True}
+        validate_link_qr_payload(with_unknown)
+
+    def test_link_qr_rejects_boolean_expires(self) -> None:
+        candidate = dict(VALID_LINK_QR)
+        candidate["expires_in_ms"] = True
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "expires_in_ms"):
+            validate_link_qr_payload(candidate)
+
+    def test_link_qr_rejects_zero_expiry(self) -> None:
+        candidate = dict(VALID_LINK_QR)
+        candidate["expires_in_ms"] = 0
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "out of range"):
+            validate_link_qr_payload(candidate)
+
+    def test_link_qr_rejects_oversized_expiry(self) -> None:
+        candidate = dict(VALID_LINK_QR)
+        candidate["expires_in_ms"] = 3600001
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "out of range"):
+            validate_link_qr_payload(candidate)
+
+    def test_link_qr_rejects_zero_discriminator(self) -> None:
+        candidate = dict(VALID_LINK_QR)
+        candidate["discriminator"] = "AAAA"
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "must be nonzero"):
+            validate_link_qr_payload(candidate)
+
+    def test_link_qr_rejects_padded_discriminator(self) -> None:
+        candidate = dict(VALID_LINK_QR)
+        candidate["discriminator"] = "782r=="
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "strict Base64URL"):
+            validate_link_qr_payload(candidate)
+
+    def test_link_qr_rejects_short_pop(self) -> None:
+        candidate = dict(VALID_LINK_QR)
+        candidate["pop"] = "AAECAwQFBgcICQoLDA0"
+        with self.assertRaisesRegex(ContractValidationError,
+                                    "decode to 16 bytes"):
+            validate_link_qr_payload(candidate)
+
+    def test_link_session_transport_semantic_coverage(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        validate_link_session_transport(root)
 
 
 if __name__ == "__main__":

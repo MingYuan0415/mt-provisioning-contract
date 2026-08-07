@@ -3,11 +3,14 @@
 Session and control characteristics use the same application fragmentation.
 Security 2 handshake protobuf messages are reassembled before they are passed
 to Protocomm. Protected application messages are encrypted before they are
-fragmented.
+fragmented. After reassembly, each message begins with a one-byte transport
+type that distinguishes the Security 2 handshake from a protected
+application message; the full wire is defined in
+[`docs/device-link-session-transport-v1.md`](device-link-session-transport-v1.md).
 
 ```text
-protobuf -> Security 2 -> fragmentation -> GATT
-GATT -> reassembly -> Security 2 -> protobuf
+protobuf -> Security 2 -> type byte + fragmentation -> GATT
+GATT -> reassembly -> type byte -> Security 2 -> protobuf
 ```
 
 ## Fragment header

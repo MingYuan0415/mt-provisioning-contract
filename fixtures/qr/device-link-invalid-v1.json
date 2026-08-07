@@ -1,0 +1,19 @@
+[
+  {"id": "missing-discriminator", "remove": ["discriminator"]},
+  {"id": "padded-discriminator", "replace": {"discriminator": "782r=="}},
+  {"id": "short-discriminator", "replace": {"discriminator": "782"}},
+  {"id": "bad-discriminator-character", "replace": {"discriminator": "78!r"}},
+  {"id": "zero-discriminator", "replace": {"discriminator": "AAAA"}},
+  {"id": "missing-pop", "remove": ["pop"]},
+  {"id": "padded-pop", "replace": {"pop": "AAECAwQFBgcICQoLDA0ODw=="}},
+  {"id": "short-pop", "replace": {"pop": "AAECAwQFBgcICQoLDA0OD"}},
+  {"id": "invalid-pop-character", "replace": {"pop": "AAECAwQFBgcICQoLDA0OD!"}},
+  {"id": "wrong-ver", "replace": {"ver": "v1"}},
+  {"id": "wrong-service", "replace": {"service": "d8f1c836-b47e-409f-8c21-73979e390e6b"}},
+  {"id": "wrong-name", "replace": {"name": "MT-A1B2C3"}},
+  {"id": "missing-expires", "remove": ["expires_in_ms"]},
+  {"id": "zero-expires", "replace": {"expires_in_ms": 0}},
+  {"id": "negative-expires", "replace": {"expires_in_ms": -1}},
+  {"id": "oversized-expires", "replace": {"expires_in_ms": 3600001}},
+  {"id": "string-expires", "replace": {"expires_in_ms": "600000"}}
+]

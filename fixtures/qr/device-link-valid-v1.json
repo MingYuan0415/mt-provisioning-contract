@@ -1,0 +1,8 @@
+{
+  "ver": "link-v1",
+  "name": "MT",
+  "service": "3e203192-b4bb-4e59-a28a-3d1157854ea3",
+  "discriminator": "782r",
+  "pop": "AAECAwQFBgcICQoLDA0ODw",
+  "expires_in_ms": 600000
+}

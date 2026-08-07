@@ -7,6 +7,19 @@ Changelog and versions follow Semantic Versioning while the contract matures.
 
 ### Added
 
+- Defined the Device Link QR bootstrap schema (`docs/device-link-qr-v1.md`):
+  a `link-v1` JSON payload carrying the Device Link service UUID, the fresh
+  24-bit discovery discriminator in Base64URL, a 128-bit POP, and an
+  informational expiry bound.
+- Defined the Device Link session transport (`docs/device-link-session-transport-v1.md`):
+  a one-byte transport type after reassembly distinguishes the Protocomm
+  Security 2 handshake (`SessionData`, sec_ver 2) from raw AES-GCM protected
+  `Envelope` ciphertext on session and control characteristics, including
+  verifier selection by binding state and deterministic re-handshake
+  recovery.
+- Defined pairing-window admission in the security contract: unknown peers
+  pair only inside a local window, repeat pairing only during replacement,
+  with one SC-only bond and replacement invalidation ordering.
 - Added the draft Device Link v1 protobuf package and static GATT profile.
 - Defined device-focused framing, Secure Connections binding, application
   authorization, recovery, and lifecycle requirements.

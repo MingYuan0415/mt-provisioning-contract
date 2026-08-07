@@ -1,0 +1,180 @@
+[
+  {
+    "id": "handshake-before-ciphertext",
+    "channel": "session",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "window",
+    "result": "ACCEPTED",
+    "session_after": "OPEN",
+    "response_channel": "session_tx",
+    "response_type": 0
+  },
+  {
+    "id": "ciphertext-before-handshake",
+    "channel": "session",
+    "type": 1,
+    "session_state": "none",
+    "binding_state": "window",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "handshake-on-control",
+    "channel": "control",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "bound",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "protected-on-control",
+    "channel": "control",
+    "type": 1,
+    "session_state": "open",
+    "binding_state": "bound",
+    "result": "ACCEPTED",
+    "session_after": "OPEN",
+    "response_channel": "control_tx",
+    "response_type": 1
+  },
+  {
+    "id": "protected-on-control-unauthenticated",
+    "channel": "control",
+    "type": 1,
+    "session_state": "open",
+    "binding_state": "bound",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "unknown-type",
+    "channel": "session",
+    "type": 2,
+    "session_state": "none",
+    "binding_state": "window",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "re-handshake-replaces",
+    "channel": "session",
+    "type": 0,
+    "session_state": "open",
+    "binding_state": "bound",
+    "result": "ACCEPTED",
+    "session_after": "REPLACED",
+    "response_channel": "session_tx",
+    "response_type": 0
+  },
+  {
+    "id": "malformed-handshake",
+    "channel": "session",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "window",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "wrong-sec-version",
+    "channel": "session",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "window",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "short-ciphertext",
+    "channel": "session",
+    "type": 1,
+    "session_state": "open",
+    "binding_state": "bound",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "failed-tag-closes",
+    "channel": "session",
+    "type": 1,
+    "session_state": "open",
+    "binding_state": "bound",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "wrong-credential-rejected",
+    "channel": "session",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "bound",
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "window-closed-no-verifier",
+    "channel": "session",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "none",
+    "result": "NOT_ADMITTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "bootstrap-verifier",
+    "channel": "session",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "window",
+    "verifier": "QR_POP",
+    "result": "ACCEPTED",
+    "session_after": "OPEN",
+    "response_channel": "session_tx",
+    "response_type": 0
+  },
+  {
+    "id": "bound-verifier",
+    "channel": "session",
+    "type": 0,
+    "session_state": "none",
+    "binding_state": "bound",
+    "verifier": "LONG_TERM",
+    "result": "ACCEPTED",
+    "session_after": "OPEN",
+    "response_channel": "session_tx",
+    "response_type": 0
+  },
+  {
+    "id": "protected-response-routing",
+    "channel": "session",
+    "type": 1,
+    "session_state": "open",
+    "binding_state": "bound",
+    "result": "ACCEPTED",
+    "session_after": "OPEN",
+    "response_channel": "session_tx",
+    "response_type": 1
+  }
+]

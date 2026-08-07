@@ -46,4 +46,6 @@ discriminator.
 Android filters by the service UUID first, then by the exact discriminator from
 the QR when a window is active. The short name `MT` is display-only and is not
 used for identity matching. Advertising content never includes Wi-Fi names,
-credentials, authorization state, or stable device IDs.
+credentials, authorization state, or stable device IDs. The QR schema and its
+validation rules are defined in
+[`docs/device-link-qr-v1.md`](device-link-qr-v1.md).

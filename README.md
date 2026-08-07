@@ -58,9 +58,11 @@ stable provisioning v1 wire. Its draft sources are:
 - `profiles/device-link-v1.yaml` for the static GATT profile and limits;
 - [`docs/device-link-gatt-v1.md`](docs/device-link-gatt-v1.md);
 - [`docs/device-link-framing-v1.md`](docs/device-link-framing-v1.md);
+- [`docs/device-link-session-transport-v1.md`](docs/device-link-session-transport-v1.md);
 - [`docs/device-link-security-v1.md`](docs/device-link-security-v1.md);
 - [`docs/device-link-lifecycle-v1.md`](docs/device-link-lifecycle-v1.md);
-- [`docs/device-link-discovery-v1.md`](docs/device-link-discovery-v1.md).
+- [`docs/device-link-discovery-v1.md`](docs/device-link-discovery-v1.md);
+- [`docs/device-link-qr-v1.md`](docs/device-link-qr-v1.md).
 
 Draft Device Link artifacts do not change or deprecate provisioning v1 and are
 not evidence of Android interoperability.
