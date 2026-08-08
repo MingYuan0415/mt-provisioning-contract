@@ -61,11 +61,14 @@ snapshot.
 
 ## ATT limits
 
-The preferred ATT MTU is 498. With 251-byte Data Length Extension this produces
-an ATT PDU plus four-byte L2CAP header of exactly 502 bytes, carried by two
-maximum-size Link Layer data payloads. The optimization is not required for
-correctness.
+The preferred ATT MTU is 498, which is also the device cap: a peer that
+requests a larger MTU is answered with 498, and every value the device sends
+is bounded by the 498-derived limits below. With 251-byte Data Length
+Extension this produces an ATT PDU plus four-byte L2CAP header of exactly 502
+bytes, carried by two maximum-size Link Layer data payloads. The optimization
+is not required for correctness.
 
 Write Request, Write Command, Notification, and Indication values are limited
 to `ATT_MTU - 3`; Read Response values are limited to `ATT_MTU - 1`. All peers
-must support the protocol at ATT MTU 23.
+must support the protocol at ATT MTU 23. The framing payload follows
+`docs/device-link-framing-v1.md` (12/174/487 bytes at MTU 23/185/498).

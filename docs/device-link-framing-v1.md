@@ -57,17 +57,25 @@ fixtures and in the firmware assertions.
 
 The 16-bit `total_length` field bounds the largest representable frame at
 65535 bytes. Per-channel limits are a separate layer: session messages are
-limited to 1024 bytes and control messages are provisionally limited to 4096
-bytes until the firmware resource campaign freezes the final limit. Both
-layers are enforced by the consumer; the reference reassembler enforces the
-16-bit field and caller-provided capacity. Transfer data does not use a
-control reassembly slot.
+limited to 1024 bytes and control messages are limited to 4096 bytes. Both
+limits are reassembly ceilings for messages received on the respective RX
+characteristic; they are not a claim that every response is transmitted in one
+message. Both layers are enforced by the consumer; the reference reassembler
+enforces the 16-bit field and caller-provided capacity. Transfer data does not
+use a control reassembly slot.
 
 ## Reliability
 
 Every RX session/control fragment uses Write With Response. Every TX
 session/control response fragment uses indication, one at a time. The next
 request cannot start until the final response indication is confirmed.
+
+Outbound responses are streamed fragment by fragment: the device sends one
+fragment, waits for its indication confirmation (2 s window), then sends the
+next fragment of the same message. This guarantees a response completes at any
+negotiated ATT MTU down to the mandatory 23, independent of the local TX queue
+depth. A timeout, error, or disconnect on any fragment discards the remainder
+of the message and closes the Security 2 session.
 
 An indication timeout or ambiguous response ends the Security 2 session. A
 client establishes a new session and queries snapshot or operation state; it

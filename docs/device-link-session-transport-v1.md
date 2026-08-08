@@ -119,6 +119,31 @@ a crash can leave the device unbound but never dual-authorized.
 
 A handshake that fails the SRP proof (wrong `pop` or wrong application
 password) is rejected and the session stays closed. The client chooses its
-SRP password by context: the QR `pop` for a bootstrap, the stored application
-password for a reconnect (`docs/device-link-qr-v1.md`,
-`docs/device-link-security-v1.md`).
+SRP password by context: the QR `pop` decoded to its 16 raw bytes for a
+bootstrap, the stored application password for a reconnect
+(`docs/device-link-qr-v1.md`, `docs/device-link-security-v1.md`).
+
+## Request admission
+
+After a handshake authenticates (bootstrap POP or long-term credential), the
+session channel admits:
+
+- `GetCapabilities`, `GetLinkSnapshot`, `AuthorizePrepare`,
+  `AuthorizeCommit`, and `GetAuthorization`.
+
+Authorization-gated business requests remain on the control channel and still
+require `AUTHORIZED`. `GetCapabilities` and `GetLinkSnapshot` are also
+admitted on the control channel when authorized, so a bound client may use
+either channel.
+
+`GetAuthorization` is the recovery query: the client sends it with the
+`RECOVERY_QUERY` envelope flag and the prepared credential ID after a lost
+`AuthorizeCommit` response. The device answers only under a session
+authenticated with the long-term credential of the matching committed record,
+and returns the same `AuthorizationResult` as the original Commit (including
+the opaque `device_authorization_id`). Without `RECOVERY_QUERY`, or for a
+credential that matches no committed record, the request is rejected.
+
+A request body whose feature is not advertised is rejected with
+`LINK_ERROR_UNSUPPORTED_OPERATION`; v1 does not advertise encrypted events, so
+`SubscribeEvents` is rejected on every channel.

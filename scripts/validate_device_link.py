@@ -71,6 +71,23 @@ SECURITY_SEMANTICS = {
         "client_recovery": "TEST_LONG_TERM_CREDENTIAL",
         "recovery_state": "AUTHORIZED",
     },
+    "lost-commit-response-query-recovers": {
+        "authorization_persisted": True,
+        "recovery": "GET_AUTHORIZATION_WITH_RECOVERY_QUERY",
+        "device_authorization_id_restored": True,
+        "recovery_state": "AUTHORIZED",
+    },
+    "get-authorization-wrong-credential-rejected": {
+        "credential_match": False,
+        "result": "REJECTED",
+        "recovery_state": "UNCHANGED",
+    },
+    "prepare-refetch-same-transaction": {
+        "fresh_request_id": True,
+        "same_txn_id": True,
+        "same_credential_id": True,
+        "same_application_password": True,
+    },
     "idempotent-authorize-commit": {
         "retry_with_same_txn": True,
         "exactly_one_record": True,
@@ -95,6 +112,18 @@ SECURITY_SEMANTICS = {
     "replacement-crash-unbound-not-dual": {
         "old_authorization_invalidated_before_bond_deleted": True,
         "worst_state": "UNBOUND",
+    },
+    "local-revoke-journal-recoverable": {
+        "journaled": True,
+        "resume": "BEFORE_ADVERTISING_AND_AUTOCONNECT",
+        "worst_state": "UNBOUND",
+    },
+    "factory-reset-journal-recoverable": {
+        "journaled": True,
+        "authorization": "CLEARED",
+        "bond": "CLEARED",
+        "cccd": "CLEARED",
+        "wifi_profile": "CLEARED",
     },
     "unknown-peer-outside-window-rejected": {
         "pairing_allowed": False,
@@ -792,6 +821,36 @@ SESSION_TRANSPORT_SEMANTICS = {
         "result": "ACCEPTED", "session_after": "AUTHENTICATED",
         "response_channel": "session_tx", "response_type": 1,
     },
+    "get-capabilities-on-session-channel": {
+        "channel": "session", "type": 1, "session_state": "authenticated",
+        "binding_state": "window", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True,
+        "result": "ACCEPTED", "session_after": "AUTHENTICATED",
+        "response_channel": "session_tx", "response_type": 1,
+    },
+    "get-authorization-recovery-query": {
+        "channel": "session", "type": 1, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True,
+        "recovery_query": True, "result": "ACCEPTED",
+        "session_after": "AUTHENTICATED", "response_channel": "session_tx",
+        "response_type": 1,
+    },
+    "authorize-prepare-on-control-rejected": {
+        "channel": "control", "type": 1, "session_state": "authenticated",
+        "binding_state": "window", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True,
+        "result": "REJECTED", "session_after": "CLOSED",
+        "response_channel": None, "response_type": None,
+    },
+    "subscribe-events-unadvertised": {
+        "channel": "control", "type": 1, "session_state": "authenticated",
+        "binding_state": "bound", "stage": "AUTHENTICATED",
+        "ciphertext_len": 64, "counter_valid": True,
+        "authorization": "AUTHORIZED", "result": "UNSUPPORTED_OPERATION",
+        "session_after": "AUTHENTICATED", "response_channel": "control_tx",
+        "response_type": 1,
+    },
 }
 
 
@@ -862,6 +921,18 @@ def _require_session_transport_domain(expected: dict) -> None:
         if result == "ACCEPTED":
             require(session_after == "AUTHENTICATED",
                     f"accepted protected message keeps session: {case_id}")
+        if expected.get("recovery_query") is True:
+            require(channel == "session",
+                    f"recovery query is session-channel only: {case_id}")
+            require(expected.get("binding_state") == "bound",
+                    f"recovery query needs a bound record: {case_id}")
+            require(session_after == "AUTHENTICATED",
+                    f"recovery query keeps the session: {case_id}")
+        if result == "UNSUPPORTED_OPERATION":
+            require(expected.get("authorization") == "AUTHORIZED",
+                    f"unsupported operation needs an authorized session: {case_id}")
+            require(session_after == "AUTHENTICATED",
+                    f"unsupported operation keeps the session: {case_id}")
     else:
         require(result == "REJECTED",
                 f"unknown type must reject: {case_id}")
@@ -946,6 +1017,16 @@ def validate_link_limits(root: Path) -> None:
         "discriminator_chars": 4,
         "expires_in_ms_max": 3600000,
     }, "link limits qr mismatch")
+    require(limits.get("framing") == {
+        "maximum_control_message_bytes":
+            profile.get("framing", {}).get("maximum_control_message_bytes"),
+        "maximum_session_message_bytes":
+            profile.get("framing", {}).get("maximum_session_message_bytes"),
+    }, "link limits framing mismatch with profile")
+    require(limits.get("framing") == {
+        "maximum_control_message_bytes": 4096,
+        "maximum_session_message_bytes": 1024,
+    }, "link limits framing mismatch")
     session_transport = profile.get("session_transport")
     qr_profile = profile.get("qr")
     require(limits["session_transport"]["type_bytes"] ==

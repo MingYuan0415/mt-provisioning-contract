@@ -54,8 +54,11 @@ encode as `782r`.
    ranges) without coercion.
 2. Scan by the Device Link service UUID; when the QR is active, match the
    exact decoded discriminator against the advertisement Service Data.
-3. Use the POP as the SRP password for the bootstrap Security 2 handshake on
-   `session_rx` (`docs/device-link-session-transport-v1.md`).
+3. Decode the `pop` Base64URL to its 16 raw bytes. The decoded bytes are the
+   SRP password input for the bootstrap Security 2 handshake on `session_rx`
+   (`docs/device-link-session-transport-v1.md`): the Base64URL form is only a
+   display encoding and is never re-encoded or used as text. Binary-safe
+   decoding must preserve `0x00` bytes and all 256 byte values.
 4. After Security 2, confirm that the device identity facts agree with the
    QR (`Capabilities` and the binding flow); never trust a QR from any other
    channel.

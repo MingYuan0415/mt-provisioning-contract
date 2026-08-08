@@ -25,6 +25,7 @@ message Request {
     AuthorizePrepareRequest authorize_prepare = 12;
     AuthorizeCommitRequest authorize_commit = 13;
     SubscribeEventsRequest subscribe_events = 14;
+    GetAuthorizationRequest get_authorization = 15;
   }
 }
 

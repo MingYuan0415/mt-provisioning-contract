@@ -18,6 +18,10 @@
     "handshake_type": 0,
     "encrypted_type": 1
   },
+  "framing": {
+    "maximum_control_message_bytes": 4096,
+    "maximum_session_message_bytes": 1024
+  },
   "qr": {
     "version": "link-v1",
     "short_name": "MT",

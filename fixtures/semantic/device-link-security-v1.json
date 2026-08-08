@@ -18,6 +18,26 @@
     "recovery_state": "AUTHORIZED"
   },
   {
+    "id": "lost-commit-response-query-recovers",
+    "authorization_persisted": true,
+    "recovery": "GET_AUTHORIZATION_WITH_RECOVERY_QUERY",
+    "device_authorization_id_restored": true,
+    "recovery_state": "AUTHORIZED"
+  },
+  {
+    "id": "get-authorization-wrong-credential-rejected",
+    "credential_match": false,
+    "result": "REJECTED",
+    "recovery_state": "UNCHANGED"
+  },
+  {
+    "id": "prepare-refetch-same-transaction",
+    "fresh_request_id": true,
+    "same_txn_id": true,
+    "same_credential_id": true,
+    "same_application_password": true
+  },
+  {
     "id": "idempotent-authorize-commit",
     "retry_with_same_txn": true,
     "exactly_one_record": true,
@@ -47,6 +67,20 @@
     "id": "replacement-crash-unbound-not-dual",
     "old_authorization_invalidated_before_bond_deleted": true,
     "worst_state": "UNBOUND"
+  },
+  {
+    "id": "local-revoke-journal-recoverable",
+    "journaled": true,
+    "resume": "BEFORE_ADVERTISING_AND_AUTOCONNECT",
+    "worst_state": "UNBOUND"
+  },
+  {
+    "id": "factory-reset-journal-recoverable",
+    "journaled": true,
+    "authorization": "CLEARED",
+    "bond": "CLEARED",
+    "cccd": "CLEARED",
+    "wifi_profile": "CLEARED"
   },
   {
     "id": "unknown-peer-outside-window-rejected",

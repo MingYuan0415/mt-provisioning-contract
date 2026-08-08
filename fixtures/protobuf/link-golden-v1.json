@@ -60,6 +60,35 @@
     }
   },
   {
+    "id": "get-authorization-request",
+    "type": "microtech.link.v1.Envelope",
+    "hex": "0801190807060504030201521d0903000000000000007a120a100102030405060708090a0b0c0d0e0f10",
+    "json": {
+      "protocol_major": 1,
+      "boot_id": "72623859790382856",
+      "request": {
+        "request_id": "3",
+        "get_authorization": {
+          "credential_id": "AQIDBAUGBwgJCgsMDQ4PEA=="
+        }
+      }
+    }
+  },
+  {
+    "id": "get-authorization-response",
+    "type": "microtech.link.v1.Response",
+    "hex": "09030000000000000010016a260a100102030405060708090a0b0c0d0e0f101210404142434445464748494a4b4c4d4e4f1805",
+    "json": {
+      "request_id": "3",
+      "error": "LINK_ERROR_OK",
+      "authorization_result": {
+        "credential_id": "AQIDBAUGBwgJCgsMDQ4PEA==",
+        "device_authorization_id": "QEFCQ0RFRkdISUpLTE1OTw==",
+        "state": "AUTHORIZATION_STATE_AUTHORIZED"
+      }
+    }
+  },
+  {
     "id": "transfer-start-control",
     "type": "microtech.link.v1.Envelope",
     "hex": "08011908070605040302017238098877665544332211522d08011100000100000000001a20abababababababababababababababababababababababababababababababab",

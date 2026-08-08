@@ -48,6 +48,15 @@ message LinkState {
 
 message GetLinkSnapshotRequest {}
 
+message GetAuthorizationRequest {
+  // Credential id from the committed AuthorizationResult. The device
+  // returns the matching committed record (including the opaque
+  // device_authorization_id) only when the request arrives under a
+  // Security 2 session authenticated with the long-term credential of
+  // that same record and the peer identity matches the record.
+  bytes credential_id = 1;
+}
+
 message AuthorizePrepareRequest {}
 
 message AuthorizePrepareResponse {

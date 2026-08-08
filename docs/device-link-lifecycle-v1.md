@@ -80,6 +80,21 @@ long-term credential. It treats Android's bond and address as system transport
 state, not as application authorization. It preserves a prepared credential
 after an ambiguous Commit result and tests it on reconnect.
 
+When a Commit response is lost, the recovery sequence is:
+
+1. Reconnect and re-handshake with the preserved long-term credential (the
+   prepared application password).
+2. Send `GetAuthorization` with the prepared credential ID and the
+   `RECOVERY_QUERY` envelope flag on the session channel.
+3. Compare the returned credential ID with the prepared one. Equal: persist
+   the returned `device_authorization_id` and continue. Different or an error:
+   the prepare was replaced or never committed; do not retry the old Commit
+   and start a fresh locally confirmed binding.
+
+The app must not use the session channel for authorization-gated business
+requests, and must not subscribe to encrypted events in v1 (they are not
+advertised; polling `GetLinkSnapshot` is the supported path).
+
 Android RPA resolution, Companion Device association, background execution,
 and vendor GATT recovery are deliberately not marked verified by this device-
 focused P0 contract. They must be reviewed when the Android consumer is

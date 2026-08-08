@@ -239,5 +239,63 @@
     "session_after": "AUTHENTICATED",
     "response_channel": "session_tx",
     "response_type": 1
+  },
+  {
+    "id": "get-capabilities-on-session-channel",
+    "channel": "session",
+    "type": 1,
+    "session_state": "authenticated",
+    "binding_state": "window",
+    "stage": "AUTHENTICATED",
+    "ciphertext_len": 64,
+    "counter_valid": true,
+    "result": "ACCEPTED",
+    "session_after": "AUTHENTICATED",
+    "response_channel": "session_tx",
+    "response_type": 1
+  },
+  {
+    "id": "get-authorization-recovery-query",
+    "channel": "session",
+    "type": 1,
+    "session_state": "authenticated",
+    "binding_state": "bound",
+    "stage": "AUTHENTICATED",
+    "ciphertext_len": 64,
+    "counter_valid": true,
+    "recovery_query": true,
+    "result": "ACCEPTED",
+    "session_after": "AUTHENTICATED",
+    "response_channel": "session_tx",
+    "response_type": 1
+  },
+  {
+    "id": "authorize-prepare-on-control-rejected",
+    "channel": "control",
+    "type": 1,
+    "session_state": "authenticated",
+    "binding_state": "window",
+    "stage": "AUTHENTICATED",
+    "ciphertext_len": 64,
+    "counter_valid": true,
+    "result": "REJECTED",
+    "session_after": "CLOSED",
+    "response_channel": null,
+    "response_type": null
+  },
+  {
+    "id": "subscribe-events-unadvertised",
+    "channel": "control",
+    "type": 1,
+    "session_state": "authenticated",
+    "binding_state": "bound",
+    "stage": "AUTHENTICATED",
+    "ciphertext_len": 64,
+    "counter_valid": true,
+    "authorization": "AUTHORIZED",
+    "result": "UNSUPPORTED_OPERATION",
+    "session_after": "AUTHENTICATED",
+    "response_channel": "control_tx",
+    "response_type": 1
   }
 ]

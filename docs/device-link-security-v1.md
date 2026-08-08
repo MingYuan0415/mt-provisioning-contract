@@ -56,16 +56,25 @@ The binding flow after SMP pairing is defined by the session transport
 
 ## Bootstrap and commit
 
-The QR contains a fresh 128-bit POP with a bounded lifetime. It is used only by
-the bootstrap Security 2 session and is never persisted or logged.
+The QR contains a fresh 128-bit POP with a bounded lifetime. The client
+decodes the Base64URL `pop` to its 16 raw bytes and uses exactly those bytes as
+the bootstrap SRP password (`docs/device-link-qr-v1.md`). The POP is used only
+by the bootstrap Security 2 session and is never persisted or logged.
 
-After bootstrap authentication, the user confirms on the device. An
-`AuthorizePrepare` request then creates a random nonzero transaction ID, a
-16-byte credential ID, and a random application password of at least 16 bytes.
-The response is protected by the bootstrap Security 2 session.
+The binding flow order is fixed: `AuthorizePrepare` first, then local
+confirmation, then `AuthorizeCommit`.
 
-The client persists the application password before sending `AuthorizeCommit`.
-The device commits one record atomically:
+1. After bootstrap authentication the client sends `AuthorizePrepare` on the
+   session channel. The device creates a random nonzero transaction ID, a
+   16-byte credential ID, and a random application password of at least 16
+   bytes. The response is protected by the bootstrap Security 2 session.
+   Repeating `AuthorizePrepare` with a fresh request ID while the same
+   transaction is active returns the same transaction ID, credential ID, and
+   application password; the transaction expires after `expires_in_ms`.
+2. The user confirms the binding on the device. Until the local confirmation
+   is granted, `AuthorizeCommit` fails with `LINK_ERROR_CONFIRMATION_REQUIRED`.
+3. The client persists the application password before sending
+   `AuthorizeCommit`. The device commits one record atomically:
 
 ```text
 schema version
@@ -80,6 +89,38 @@ The plaintext application password is never persisted by the device.
 `AuthorizeCommit` is idempotent for the active transaction and credential ID.
 The committed record is the only state that grants authorization.
 
+A binding that never commits leaves no persistent authorization. A provisional
+bond created during the window is deleted on local deny, prepare expiry, window
+close or timeout, disconnect, protocol failure, or a failed commit; a bond
+whose commit succeeded is promoted and survives.
+
+## Recovery
+
+- Prepare without Commit leaves no persistent authorization. Disconnect or
+  reboot clears the prepared credential and removes a provisional orphan bond.
+- A lost Commit response is recovered by reconnecting with the prepared
+  long-term credential. Successful authentication proves that Commit won; the
+  client then sends `GetAuthorization` with the prepared credential ID under
+  the `RECOVERY_QUERY` envelope flag. The device returns the committed
+  `AuthorizationResult` (including the opaque `device_authorization_id`) only
+  when the session was authenticated with the long-term credential of that
+  record and the peer identity matches the record. The client must compare the
+  returned credential ID with the prepared one; a mismatch means the prepare
+  was replaced and the client must not retry the old Commit.
+- `GetCapabilities` and `GetLinkSnapshot` are admitted on the session channel
+  after bootstrap or long-term authentication, before authorization.
+- A bond without an authorization record is deleted.
+- An authorization record without its bond is invalidated.
+- Loss of the application credential requires a new locally confirmed binding.
+- Replacement invalidates authorization before deleting the old bond, so a
+  crash can leave the device unbound but never dual-authorized.
+- Local revoke and factory reset are device-local operations with no v1 wire
+  command. Both are journaled before any mutation; a crash mid-operation
+  resumes the journaled intent at startup before advertising or network
+  autoconnect, so a crash never leaves a half-cleared or dual-authorized
+  state. Factory reset clears authorization, bonds, CCCDs, Wi-Fi profiles, and
+  temporary transfers.
+
 ## Reconnection
 
 A reconnect becomes ready only after the encrypted connection matches the
@@ -88,9 +129,11 @@ the long-term application credential. A bond alone does not authorize control
 or transfer access.
 
 Security 2 calls are serialized. Session and protected control responses use
-confirmed indications. Timeout, disconnect, malformed ciphertext, or an
-ambiguous response closes the Security 2 session. Asynchronous events never use
-the Security 2 request/response counter stream.
+confirmed indications, one fragment at a time: the next fragment of a response
+is sent only after the previous indication was confirmed, so responses stream
+at any negotiated MTU down to 23. Timeout, disconnect, malformed ciphertext, or
+an ambiguous response closes the Security 2 session. Asynchronous events never
+use the Security 2 request/response counter stream.
 
 ## Recovery
 
